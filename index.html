@@ -212,37 +212,6 @@
 .form-group input:focus, .form-group select:focus { border-color:var(--gold); }
 .form-submit { background:var(--gold); color:var(--ink); border:none; padding:1rem 2rem; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.3s; width:100%; }
 .form-submit:hover { background:var(--gold-light); }
-
-window.addEventListener('load', function() {
-  var form = document.getElementById('contactForm');
-  if (!form) return;
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    var btn = document.getElementById('submitBtn');
-    var success = document.getElementById('formSuccess');
-    btn.disabled = true;
-    btn.textContent = 'Sending...';
-    try {
-      var response = await fetch('https://formspree.io/f/xgondjrp', {
-        method: 'POST',
-        body: new FormData(form),
-        headers: { 'Accept': 'application/json' }
-      });
-      var data = await response.json();
-      if (data.ok || response.ok || response.status === 200) {
-        success.style.display = 'block';
-        btn.style.display = 'none';
-        form.reset();
-      } else {
-        throw new Error('Failed');
-      }
-    } catch(err) {
-      btn.disabled = false;
-      btn.textContent = 'Send Message';
-      alert('Something went wrong. Please try again.');
-    }
-  });
-});
 </style>
 </head>
 <body>
@@ -478,7 +447,8 @@ window.addEventListener('load', function() {
   <div class="reveal" style="padding-top:1rem;">
     <p class="section-eyebrow">Send Us a Message</p>
     <p style="color:var(--silver);font-size:0.88rem;margin-bottom:2rem;line-height:1.6;">Fill in your details and we'll be in touch within one business day.</p>
-    <form action="https://formspree.io/f/xgondjrp" method="POST" id="contactForm" data-cfajax="false" style="display:flex;flex-direction:column;gap:1.2rem;">
+    <form id="contactForm" style="display:flex;flex-direction:column;gap:1.2rem;">
+	<input type="hidden" name="access_key" value="4eb43f21-030f-429b-b6c1-ddf7efdc4667">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div class="form-group">
           <label>Your Name</label>
@@ -546,6 +516,42 @@ window.addEventListener('load', function() {
     });
   }, { threshold: 0.1 });
   reveals.forEach(el => observer.observe(el));
+window.onload = function() {
+  var form = document.getElementById('contactForm');
+  if (!form) return;
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var btn = document.getElementById('submitBtn');
+    var success = document.getElementById('formSuccess');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    try {
+      var formData = new FormData(form);
+      var object = {};
+      formData.forEach(function(value, key) { object[key] = value; });
+      var response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(object)
+      });
+      var data = await response.json();
+      if (data.success) {
+        success.style.display = 'block';
+        btn.style.display = 'none';
+        form.reset();
+      } else {
+        throw new Error('Failed');
+      }
+    } catch(err) {
+      btn.disabled = false;
+      btn.textContent = 'Send Message';
+      alert('Something went wrong. Please try again.');
+    }
+  });
+};
 </script>
 </body>
 </html>
