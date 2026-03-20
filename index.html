@@ -228,7 +228,8 @@ window.addEventListener('load', function() {
         body: new FormData(form),
         headers: { 'Accept': 'application/json' }
       });
-      if (response.ok) {
+      var data = await response.json();
+      if (data.ok || response.ok || response.status === 200) {
         success.style.display = 'block';
         btn.style.display = 'none';
         form.reset();
