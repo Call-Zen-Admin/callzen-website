@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CallZen — Client Onboarding Questionnaire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f7f4ef;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --gold-dim: #7a6230;
+    --charcoal: #2a2a35;
+    --silver: #8a8a95;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 2rem 4rem;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,10,15,0.9);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(12px);
+  }
+
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 600; color: var(--gold); text-decoration: none; }
+  .logo span { color: var(--paper); font-weight: 300; }
+
+  .header-tag { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--silver); border: 1px solid rgba(201,168,76,0.2); padding: 0.3rem 0.8rem; }
+
+  .page-hero { padding: 5rem 4rem 3rem; text-align: center; position: relative; overflow: hidden; }
+  .page-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(201,168,76,0.07), transparent 70%); }
+  .page-hero-content { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.7s ease 0.1s forwards; }
+  .hero-eyebrow::before, .hero-eyebrow::after { content: ''; width: 2rem; height: 1px; background: var(--gold); }
+  .hero-eyebrow span { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
+
+  .page-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 5vw, 4rem); font-weight: 300; line-height: 1.1; margin-bottom: 1rem; opacity: 0; animation: fadeUp 0.7s ease 0.2s forwards; }
+  .page-title em { font-style: italic; color: var(--gold); }
+
+  .page-sub { color: var(--silver); font-size: 0.95rem; line-height: 1.7; max-width: 520px; margin: 0 auto; opacity: 0; animation: fadeUp 0.7s ease 0.3s forwards; }
+
+  .progress-wrap { max-width: 800px; margin: 2rem auto 0; padding: 0 4rem; opacity: 0; animation: fadeUp 0.7s ease 0.4s forwards; }
+  .progress-bar-bg { height: 2px; background: rgba(201,168,76,0.15); }
+  .progress-bar-fill { height: 100%; background: var(--gold); transition: width 0.5s ease; width: 0%; }
+  .progress-steps { display: flex; justify-content: space-between; margin-top: 0.75rem; }
+  .progress-step { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--silver); transition: color 0.3s; }
+  .progress-step.active { color: var(--gold); }
+  .progress-step.done { color: rgba(201,168,76,0.5); }
+
+  .form-container { max-width: 800px; margin: 3rem auto 5rem; padding: 0 4rem; }
+
+  .form-section { display: none; opacity: 0; transform: translateX(30px); transition: opacity 0.4s ease, transform 0.4s ease; }
+  .form-section.active { display: block; opacity: 1; transform: translateX(0); }
+  .form-section.exit { opacity: 0; transform: translateX(-30px); }
+
+  .section-header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(201,168,76,0.12); }
+  .section-num { font-family: 'Cormorant Garamond', serif; font-size: 3.5rem; font-weight: 300; color: rgba(201,168,76,0.2); line-height: 1; margin-bottom: 0.3rem; }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 300; color: var(--paper); margin-bottom: 0.4rem; }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .section-desc { font-size: 0.85rem; color: var(--silver); line-height: 1.6; }
+
+  .field-group { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .field { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  /* FIX: labels NOT all caps — only eyebrow/small labels are uppercase */
+  .field > label {
+    font-size: 0.88rem;
+    font-weight: 400;
+    color: var(--paper);
+    letter-spacing: 0.01em;
+  }
+
+  .field label .required { color: var(--gold); margin-left: 2px; }
+
+  .field input,
+  .field select,
+  .field textarea {
+    background: rgba(42,42,53,0.4);
+    border: 1px solid rgba(201,168,76,0.15);
+    color: var(--paper);
+    padding: 0.9rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.3s, background 0.3s;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  .field select option { background: #1a1a22; }
+  .field input::placeholder, .field textarea::placeholder { color: rgba(138,138,149,0.5); }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold); background: rgba(42,42,53,0.6); }
+  .field textarea { resize: vertical; min-height: 110px; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+
+  .check-group { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    border: 1px solid rgba(201,168,76,0.12);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(10,10,15,0.3);
+    user-select: none;
+  }
+  .check-item:hover { border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.03); }
+  .check-item.selected { border-color: var(--gold); background: rgba(201,168,76,0.07); }
+  .check-item input[type="checkbox"], .check-item input[type="radio"] { display: none; }
+
+  .check-box {
+    width: 18px; height: 18px;
+    border: 1px solid rgba(201,168,76,0.3);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px;
+    transition: all 0.2s;
+  }
+  .check-item.selected .check-box { background: var(--gold); border-color: var(--gold); }
+  .check-box::after { content: '✓'; font-size: 0.65rem; color: var(--ink); display: none; font-weight: 700; }
+  .check-item.selected .check-box::after { display: block; }
+
+  .radio-box {
+    width: 18px; height: 18px;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px;
+    transition: all 0.2s;
+  }
+  .check-item.selected .radio-box { border-color: var(--gold); }
+  .radio-box::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); display: none; }
+  .check-item.selected .radio-box::after { display: block; }
+
+  .check-label { font-size: 0.88rem; color: var(--paper); line-height: 1.4; }
+  .check-label small { display: block; font-size: 0.75rem; color: var(--silver); margin-top: 0.2rem; }
+
+  .field-hint { font-size: 0.75rem; color: rgba(138,138,149,0.7); margin-top: 0.3rem; line-height: 1.5; }
+
+  .form-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(201,168,76,0.1); }
+
+  .btn-back { background: transparent; border: 1px solid rgba(201,168,76,0.2); color: var(--silver); padding: 0.85rem 2rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; letter-spacing: 0.05em; cursor: pointer; transition: all 0.3s; }
+  .btn-back:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-back:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .btn-next { background: var(--gold); border: none; color: var(--ink); padding: 0.85rem 2.5rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.05em; cursor: pointer; transition: all 0.3s; }
+  .btn-next:hover { background: var(--gold-light); }
+
+  .btn-submit { background: var(--gold); border: none; color: var(--ink); padding: 0.85rem 2.5rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.05em; cursor: pointer; transition: all 0.3s; }
+  .btn-submit:hover { background: var(--gold-light); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .step-indicator { font-size: 0.75rem; color: var(--silver); }
+  .step-indicator span { color: var(--gold); }
+
+  .success-screen { display: none; text-align: center; padding: 5rem 2rem; max-width: 600px; margin: 0 auto; }
+  .success-icon { width: 72px; height: 72px; border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; font-size: 1.8rem; }
+  .success-screen h2 { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 300; margin-bottom: 1rem; }
+  .success-screen h2 em { font-style: italic; color: var(--gold); }
+  .success-screen p { color: var(--silver); line-height: 1.7; font-size: 0.9rem; margin-bottom: 0.5rem; }
+  .success-details { margin-top: 2rem; border: 1px solid rgba(201,168,76,0.2); padding: 1.5rem; background: rgba(201,168,76,0.04); text-align: left; }
+  .success-details p { font-size: 0.82rem; color: var(--silver); margin-bottom: 0.5rem; }
+  .success-details p:last-child { margin-bottom: 0; }
+  .success-details strong { color: var(--gold); font-weight: 400; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  footer { padding: 2rem 4rem; border-top: 1px solid rgba(201,168,76,0.1); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--gold); font-weight: 600; }
+  .footer-logo span { color: var(--silver); font-weight: 300; }
+  footer p { font-size: 0.72rem; color: var(--silver); }
+
+  @media (max-width: 768px) {
+    header { padding: 1.2rem 1.5rem; }
+    .page-hero { padding: 3rem 1.5rem 2rem; }
+    .progress-wrap { padding: 0 1.5rem; }
+    .form-container { padding: 0 1.5rem; margin: 2rem auto 4rem; }
+    .field-row { grid-template-columns: 1fr; }
+    footer { padding: 1.5rem; flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="https://callzen.com.au" class="logo">Call<span>Zen</span></a>
+  <span class="header-tag">Client Onboarding</span>
+</header>
+
+<div class="page-hero">
+  <div class="page-hero-content">
+    <div class="hero-eyebrow"><span>Onboarding Questionnaire</span></div>
+    <h1 class="page-title">Let's build your <em>perfect AI.</em></h1>
+    <p class="page-sub">This takes about 5 minutes. The more detail you provide, the better your AI will perform from day one.</p>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-steps">
+    <span class="progress-step active" id="step-label-1">Your Business</span>
+    <span class="progress-step" id="step-label-2">Call Handling</span>
+    <span class="progress-step" id="step-label-3">Your Services</span>
+    <span class="progress-step" id="step-label-4">AI Preferences</span>
+    <span class="progress-step" id="step-label-5">Final Details</span>
+  </div>
+</div>
+
+<div class="form-container">
+  <form id="questionnaireForm">
+    <input type="hidden" name="access_key" value="4eb43f21-030f-429b-b6c1-ddf7efdc4667">
+    <input type="hidden" name="subject" value="CallZen Questionnaire Submission">
+    <input type="hidden" name="from_name" value="CallZen Questionnaire">
+
+    <!-- SECTION 1 -->
+    <div class="form-section active" id="section-1">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2 class="section-title">Your <em>business.</em></h2>
+        <p class="section-desc">Tell us about who you are so we can tailor the AI to represent your brand perfectly.</p>
+      </div>
+      <div class="field-group">
+        <div class="field-row">
+          <div class="field">
+            <label>Your Name <span class="required">*</span></label>
+            <input type="text" name="contact_name" placeholder="Jane Smith" required>
+          </div>
+          <div class="field">
+            <label>Your Role</label>
+            <input type="text" name="contact_role" placeholder="Owner / Manager">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Business Name <span class="required">*</span></label>
+            <input type="text" name="business_name" placeholder="Brisbane Physio" required>
+          </div>
+          <div class="field">
+            <label>Business Type <span class="required">*</span></label>
+            <select name="business_type" required>
+              <option value="">Select industry</option>
+              <option>Gym / Fitness Studio</option>
+              <option>Salon / Spa / Beauty</option>
+              <option>Physio / Chiro / Allied Health</option>
+              <option>Dental Practice</option>
+              <option>Medical Clinic</option>
+              <option>Restaurant / Café</option>
+              <option>Real Estate</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Phone Number <span class="required">*</span></label>
+            <input type="tel" name="phone" placeholder="+61 4xx xxx xxx" required>
+          </div>
+          <div class="field">
+            <label>Email Address <span class="required">*</span></label>
+            <input type="email" name="email" placeholder="jane@yourbusiness.com.au" required>
+          </div>
+        </div>
+        <div class="field">
+          <label>Business Address</label>
+          <input type="text" name="address" placeholder="123 Queen St, Brisbane QLD 4000">
+        </div>
+        <div class="field">
+          <label>Business Website (if any)</label>
+          <input type="url" name="website" placeholder="https://yourbusiness.com.au">
+        </div>
+        <div class="field">
+          <label>Tell us about your business in detail <span class="required">*</span></label>
+          <textarea name="business_description" style="min-height:150px;" placeholder="Please describe your business in as much detail as possible — what you do, who your typical customers are, what problems you solve, how long you've been operating, your team size, and anything that makes your business unique. The more detail you provide here, the more accurately your AI will represent you." required></textarea>
+          <p class="field-hint">The more detail you provide, the better. Think of this as briefing a new staff member on your entire business.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="form-section" id="section-2">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2 class="section-title">Call <em>handling.</em></h2>
+        <p class="section-desc">How would you like your calls managed? We'll configure everything based on your answers.</p>
+      </div>
+      <div class="field-group">
+        <div class="field">
+          <label>What service do you need? <span class="required">*</span></label>
+          <div class="check-group" id="service_type_group">
+            <div class="check-item" onclick="toggleRadio(this, 'service_type', 'Inbound — AI Receptionist')">
+              <input type="radio" name="service_type" value="Inbound — AI Receptionist">
+              <div class="radio-box"></div>
+              <div class="check-label">Inbound — AI Receptionist<small>Answer incoming calls to your business</small></div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'service_type', 'Outbound — AI Campaigns')">
+              <input type="radio" name="service_type" value="Outbound — AI Campaigns">
+              <div class="radio-box"></div>
+              <div class="check-label">Outbound — AI Campaigns<small>Call your existing leads and customers</small></div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'service_type', 'Both Inbound and Outbound')">
+              <input type="radio" name="service_type" value="Both Inbound and Outbound">
+              <div class="radio-box"></div>
+              <div class="check-label">Both Inbound and Outbound<small>Full AI call management</small></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Call forwarding preference</label>
+          <div class="check-group" id="forwarding_group">
+            <div class="check-item" onclick="toggleRadio(this, 'call_forwarding', 'After hours and weekends only')">
+              <input type="radio" name="call_forwarding" value="After hours and weekends only">
+              <div class="radio-box"></div>
+              <div class="check-label">After hours and weekends only<small>You handle calls during business hours</small></div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'call_forwarding', 'After 2 rings if unanswered')">
+              <input type="radio" name="call_forwarding" value="After 2 rings if unanswered">
+              <div class="radio-box"></div>
+              <div class="check-label">After 2 rings if unanswered<small>AI picks up when you can't answer</small></div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'call_forwarding', 'All calls directly to AI')">
+              <input type="radio" name="call_forwarding" value="All calls directly to AI">
+              <div class="radio-box"></div>
+              <div class="check-label">All calls directly to AI<small>AI handles everything</small></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Business hours (describe per day if different)</label>
+          <textarea name="business_hours" placeholder="e.g. Mon-Fri 9am-5pm, Sat 9am-1pm, closed Sunday. Or: Mon/Wed/Fri 8am-6pm, Tue/Thu 10am-8pm..."></textarea>
+          <p class="field-hint">Describe your hours in plain text — include any variations across different days.</p>
+        </div>
+
+        <div class="field">
+          <label>Days open</label>
+          <div class="check-group" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;">
+            <div class="check-item" onclick="toggleCheck(this)">
+              <input type="checkbox" name="days_open" value="Monday">
+              <div class="check-box"></div>
+              <div class="check-label">Monday</div>
+            </div>
+            <div class="check-item" onclick="toggleCheck(this)">
+              <input type="checkbox" name="days_open" value="Tuesday">
+              <div class="check-box"></div>
+              <div class="check-label">Tuesday</div>
+            </div>
+            <div class="check-item" onclick="toggleCheck(this)">
+              <input type="checkbox" name="days_open" value="Wednesday">
+              <div class="check-box"></div>
+              <div class="check-label">Wednesday</div>
+            </div>
+            <div class="check-item" onclick="toggleCheck(this)">
+              <input type="checkbox" name="days_open" value="Thursday">
+              <div class="check-box"></div>
+              <div class="check-label">Thursday</div>
+            </div>
+            <div class="check-item" onclick="toggleCheck(this)">
+              <input type="checkbox" name="days_open" value="Friday">
+              <div class="check-box"></div>
+              <div class="check-label">Friday</div>
+            </div>
+            <div class="check-item" onclick="toggleCheck(this)">
+              <input type="checkbox" name="days_open" value="Saturday">
+              <div class="check-box"></div>
+              <div class="check-label">Saturday</div>
+            </div>
+            <div class="check-item" onclick="toggleCheck(this)">
+              <input type="checkbox" name="days_open" value="Sunday">
+              <div class="check-box"></div>
+              <div class="check-label">Sunday</div>
+            </div>
+            <div class="check-item" onclick="toggleCheck(this)">
+              <input type="checkbox" name="days_open" value="Public Holidays">
+              <div class="check-box"></div>
+              <div class="check-label">Public Holidays</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Approximate call volume</label>
+          <select name="call_volume">
+            <option value="">Select approximate volume</option>
+            <option>Less than 10 calls/week</option>
+            <option>10–30 calls/week</option>
+            <option>30–60 calls/week</option>
+            <option>60+ calls/week</option>
+            <option>Not sure</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Existing phone number to forward from</label>
+          <input type="tel" name="existing_number" placeholder="07xx xxx xxx or 04xx xxx xxx">
+          <p class="field-hint">Leave blank if you'd like us to provide a new number.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="form-section" id="section-3">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2 class="section-title">Your <em>services.</em></h2>
+        <p class="section-desc">Help us understand what your AI should know and be able to do for callers.</p>
+      </div>
+      <div class="field-group">
+        <div class="field">
+          <label>List your main services or products <span class="required">*</span></label>
+          <textarea name="services_list" placeholder="List each service or product you offer, ideally with a brief description and price. e.g. Initial consultation (45 min, $120), Follow-up session (30 min, $80), Group class (60 min, $25/person)..." style="min-height:130px;" required></textarea>
+          <p class="field-hint">Include names, descriptions, duration if relevant, and pricing. This is what your AI will use to answer questions.</p>
+        </div>
+
+        <div class="field">
+          <label>Top questions callers usually ask</label>
+          <textarea name="common_questions" placeholder="e.g. Do you have parking? Are you open on weekends? Do you accept health fund? What's the cancellation policy? How do I book?..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>When someone wants to book, what should the AI do?</label>
+          <div class="check-group" id="booking_action_group">
+            <div class="check-item" onclick="toggleRadio(this, 'booking_action', 'Collect their details and I will call back')">
+              <input type="radio" name="booking_action" value="Collect their details and I will call back">
+              <div class="radio-box"></div>
+              <div class="check-label">Collect their details and I will call back</div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'booking_action', 'Book directly into my calendar')">
+              <input type="radio" name="booking_action" value="Book directly into my calendar">
+              <div class="radio-box"></div>
+              <div class="check-label">Book directly into my calendar<small>Requires calendar integration — select your system below</small></div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'booking_action', 'Direct them to my online booking link')">
+              <input type="radio" name="booking_action" value="Direct them to my online booking link">
+              <div class="radio-box"></div>
+              <div class="check-label">Direct them to my online booking link</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" id="booking_system_field">
+          <label>Which booking or practice management system do you use?</label>
+          <div class="check-group" id="booking_system_group">
+            <div class="check-item" onclick="toggleRadio(this, 'booking_system', 'No system — I manage bookings manually')">
+              <input type="radio" name="booking_system" value="No system — I manage bookings manually">
+              <div class="radio-box"></div>
+              <div class="check-label">No system — I manage bookings manually</div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'booking_system', 'Google Calendar')">
+              <input type="radio" name="booking_system" value="Google Calendar">
+              <div class="radio-box"></div>
+              <div class="check-label">Google Calendar</div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'booking_system', 'Cliniko')">
+              <input type="radio" name="booking_system" value="Cliniko">
+              <div class="radio-box"></div>
+              <div class="check-label">Cliniko</div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'booking_system', 'Mindbody')">
+              <input type="radio" name="booking_system" value="Mindbody">
+              <div class="radio-box"></div>
+              <div class="check-label">Mindbody</div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'booking_system', 'HotDoc')">
+              <input type="radio" name="booking_system" value="HotDoc">
+              <div class="radio-box"></div>
+              <div class="check-label">HotDoc</div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'booking_system', 'Other')">
+              <input type="radio" name="booking_system" value="Other">
+              <div class="radio-box"></div>
+              <div class="check-label">Other</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" id="booking_system_other" style="display:none;">
+          <label>Please specify your booking system</label>
+          <input type="text" name="booking_system_other_text" placeholder="System name">
+        </div>
+
+        <div class="field" id="booking_link_field" style="display:none;">
+          <label>Online booking link</label>
+          <input type="url" name="booking_link" placeholder="https://yourbookingsystem.com.au/book">
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="form-section" id="section-4">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2 class="section-title">AI <em>preferences.</em></h2>
+        <p class="section-desc">Personalise how your AI sounds and behaves on every call.</p>
+      </div>
+      <div class="field-group">
+        <div class="field">
+          <label>Tone of voice for your AI</label>
+          <div class="check-group" id="tone_group">
+            <div class="check-item" onclick="toggleRadio(this, 'ai_tone', 'Friendly and warm')">
+              <input type="radio" name="ai_tone" value="Friendly and warm">
+              <div class="radio-box"></div>
+              <div class="check-label">Friendly and warm<small>Conversational, approachable, like a helpful team member</small></div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'ai_tone', 'Professional and formal')">
+              <input type="radio" name="ai_tone" value="Professional and formal">
+              <div class="radio-box"></div>
+              <div class="check-label">Professional and formal<small>Polished, business-like, precise</small></div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'ai_tone', 'Casual and relaxed')">
+              <input type="radio" name="ai_tone" value="Casual and relaxed">
+              <div class="radio-box"></div>
+              <div class="check-label">Casual and relaxed<small>Easy-going, natural conversation</small></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>What name should the AI introduce itself as?</label>
+          <input type="text" name="ai_name" placeholder="e.g. Jessy, Alex, Sam, or leave blank for our suggestion">
+          <p class="field-hint">Leave blank and we'll suggest a name that suits your business type.</p>
+        </div>
+
+        <div class="field">
+          <label>Would you like call summaries sent to your email?</label>
+          <div class="check-group" id="summary_email_group">
+            <div class="check-item" onclick="toggleRadio(this, 'call_summaries', 'Yes — after every call')">
+              <input type="radio" name="call_summaries" value="Yes — after every call">
+              <div class="radio-box"></div>
+              <div class="check-label">Yes — after every call</div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'call_summaries', 'Yes — daily digest only')">
+              <input type="radio" name="call_summaries" value="Yes — daily digest only">
+              <div class="radio-box"></div>
+              <div class="check-label">Yes — daily digest only</div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'call_summaries', 'No summaries needed')">
+              <input type="radio" name="call_summaries" value="No summaries needed">
+              <div class="radio-box"></div>
+              <div class="check-label">No summaries needed</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Would you like SMS sent to callers after the call?</label>
+          <div class="check-group" id="sms_group">
+            <div class="check-item" onclick="toggleRadio(this, 'post_call_sms', 'Yes — send confirmation or follow-up SMS')">
+              <input type="radio" name="post_call_sms" value="Yes — send confirmation or follow-up SMS">
+              <div class="radio-box"></div>
+              <div class="check-label">Yes — send confirmation or follow-up SMS</div>
+            </div>
+            <div class="check-item" onclick="toggleRadio(this, 'post_call_sms', 'No SMS needed')">
+              <input type="radio" name="post_call_sms" value="No SMS needed">
+              <div class="radio-box"></div>
+              <div class="check-label">No SMS needed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="form-section" id="section-5">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2 class="section-title">Final <em>details.</em></h2>
+        <p class="section-desc">Almost done. A few last things to make your setup perfect.</p>
+      </div>
+      <div class="field-group">
+        <div class="field">
+          <label>Is there anything the AI should NEVER say or do?</label>
+          <textarea name="restrictions" placeholder="e.g. Never quote prices over the phone. Never discuss competitors. Never promise specific appointment times. Never mention staff by name..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Emergency or escalation number</label>
+          <input type="tel" name="escalation_number" placeholder="Number to transfer urgent calls to">
+          <p class="field-hint">If a caller has an urgent issue, who should the AI offer to connect them to?</p>
+        </div>
+
+        <div class="field">
+          <label>Anything else you'd like us to know?</label>
+          <textarea name="additional_notes" placeholder="Any special instructions, seasonal hours, current promotions, staff names the AI should know, or anything else that would help us build the best AI for your business..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>How did you hear about CallZen?</label>
+          <input type="text" name="referral_source" placeholder="e.g. Called the demo number, Google search, referred by a friend, social media, leaflet...">
+        </div>
+
+        <div class="field">
+          <label>Preferred go-live date</label>
+          <input type="date" name="go_live_date" min="">
+          <p class="field-hint">We typically go live within 3 business days. Select a date or leave blank and we'll proceed as quickly as possible.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAV -->
+    <div class="form-nav" id="formNav">
+      <button type="button" class="btn-back" id="btnBack" onclick="prevSection()" disabled>← Back</button>
+      <span class="step-indicator">Step <span id="currentStepNum">1</span> of 5</span>
+      <button type="button" class="btn-next" id="btnNext" onclick="nextSection()">Next →</button>
+      <button type="submit" class="btn-submit" id="btnSubmit" style="display:none;">Submit →</button>
+    </div>
+  </form>
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✓</div>
+    <h2>You're all <em>set.</em></h2>
+    <p>Thank you for completing the questionnaire. We've received everything we need.</p>
+    <p>Your AI will be ready within <strong style="color:var(--gold);">3 business days.</strong></p>
+    <div class="success-details">
+      <p><strong>What happens next:</strong></p>
+      <p>— Varun will review your submission and may reach out with any quick questions</p>
+      <p>— Your custom AI will be built and tested</p>
+      <p>— We'll send you call forwarding setup instructions</p>
+      <p>— You go live — and never miss a call again</p>
+    </div>
+    <p style="margin-top:1.5rem;"><a href="https://callzen.com.au" style="color:var(--gold);text-decoration:none;font-size:0.85rem;">← Back to callzen.com.au</a></p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Call<span>Zen</span></div>
+  <p>© 2026 CallZen · Brisbane, Queensland, Australia</p>
+  <p style="font-family:'Roboto Mono',monospace;font-size:0.72rem;">hello@callzen.com.au</p>
+</footer>
+
+<script>
+  var currentSection = 1;
+  var totalSections = 5;
+
+  // Set min date for go-live to today
+  var today = new Date().toISOString().split('T')[0];
+  var dateInput = document.querySelector('input[name="go_live_date"]');
+  if (dateInput) dateInput.setAttribute('min', today);
+
+  function updateProgress() {
+    var pct = ((currentSection - 1) / (totalSections - 1)) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('currentStepNum').textContent = currentSection;
+    for (var i = 1; i <= totalSections; i++) {
+      var el = document.getElementById('step-label-' + i);
+      el.classList.remove('active', 'done');
+      if (i === currentSection) el.classList.add('active');
+      else if (i < currentSection) el.classList.add('done');
+    }
+    document.getElementById('btnBack').disabled = currentSection === 1;
+    document.getElementById('btnNext').style.display = currentSection === totalSections ? 'none' : 'inline-block';
+    document.getElementById('btnSubmit').style.display = currentSection === totalSections ? 'inline-block' : 'none';
+  }
+
+  function nextSection() {
+    if (currentSection < totalSections) {
+      var current = document.getElementById('section-' + currentSection);
+      current.classList.add('exit');
+      setTimeout(function() {
+        current.classList.remove('active', 'exit');
+        currentSection++;
+        var next = document.getElementById('section-' + currentSection);
+        next.classList.add('active');
+        updateProgress();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 300);
+    }
+  }
+
+  function prevSection() {
+    if (currentSection > 1) {
+      var current = document.getElementById('section-' + currentSection);
+      current.classList.remove('active');
+      currentSection--;
+      var prev = document.getElementById('section-' + currentSection);
+      prev.classList.add('active');
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function toggleRadio(el, name, value) {
+    var group = el.parentElement;
+    group.querySelectorAll('.check-item').forEach(function(item) {
+      item.classList.remove('selected');
+    });
+    el.classList.add('selected');
+
+    // Show booking link field
+    if (name === 'booking_action') {
+      var linkField = document.getElementById('booking_link_field');
+      if (linkField) linkField.style.display = value === 'Direct them to my online booking link' ? 'flex' : 'none';
+    }
+
+    // Show other booking system text input
+    if (name === 'booking_system') {
+      var otherField = document.getElementById('booking_system_other');
+      if (otherField) otherField.style.display = value === 'Other' ? 'flex' : 'none';
+    }
+  }
+
+  function toggleCheck(el) {
+    el.classList.toggle('selected');
+  }
+
+  // Submit
+  window.onload = function() {
+    var form = document.getElementById('questionnaireForm');
+    if (!form) return;
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      try {
+        var formData = new FormData(form);
+        var object = {};
+        formData.forEach(function(value, key) {
+          if (object[key]) {
+            object[key] = object[key] + ', ' + value;
+          } else {
+            object[key] = value;
+          }
+        });
+        var response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(object)
+        });
+        var data = await response.json();
+        if (data.success) {
+          form.style.display = 'none';
+          document.getElementById('formNav').style.display = 'none';
+          document.getElementById('successScreen').style.display = 'block';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          throw new Error('Failed');
+        }
+      } catch(err) {
+        btn.disabled = false;
+        btn.textContent = 'Submit →';
+        alert('Something went wrong. Please try again or email hello@callzen.com.au');
+      }
+    });
+  };
+
+  updateProgress();
+</script>
+</body>
+</html>
