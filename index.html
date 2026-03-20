@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CallZen — AI Receptionist for Australian Small Business</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f7f4ef;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --gold-dim: #7a6230;
+    --charcoal: #2a2a35;
+    --silver: #8a8a95;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.5rem 4rem;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+  .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 600; letter-spacing: 0.05em; color: var(--gold); text-decoration: none; }
+  .nav-logo span { color: var(--paper); font-weight: 300; }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a { color: var(--silver); text-decoration: none; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+  .nav-links a:hover { color: var(--gold); }
+
+  .phone-num { font-family: 'Roboto Mono', monospace; font-weight: 500; letter-spacing: 0.08em; }
+
+  /* HERO */
+  .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 8rem 4rem 4rem; }
+  .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 80% 20%, rgba(201,168,76,0.04) 0%, transparent 60%); }
+  .hero-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent); }
+  .hero-content { max-width: 900px; text-align: center; position: relative; z-index: 1; }
+
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; opacity: 0; animation: fadeUp 0.8s ease 0.2s forwards; }
+  .hero-eyebrow::before, .hero-eyebrow::after { content: ''; width: 2rem; height: 1px; background: var(--gold); }
+  .hero-eyebrow span { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
+
+  .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 8vw, 6.5rem); font-weight: 300; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.8s ease 0.4s forwards; }
+  .hero-title em { font-style: italic; color: var(--gold); }
+
+  .hero-subtitle { font-size: 1.1rem; color: var(--silver); line-height: 1.7; max-width: 580px; margin: 0 auto 3rem; font-weight: 300; opacity: 0; animation: fadeUp 0.8s ease 0.6s forwards; }
+
+  .hero-actions { display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s ease 0.8s forwards; }
+
+  .btn-primary { background: var(--gold); color: var(--ink); border: none; padding: 1rem 2.4rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-decoration: none; transition: all 0.3s; display: inline-block; }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+
+  .btn-secondary { background: transparent; color: var(--paper); border: 1px solid rgba(247,244,239,0.25); padding: 1rem 2.4rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 300; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-decoration: none; transition: all 0.3s; display: inline-block; }
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* DEMO STRIP */
+  .demo-strip { background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.05)); border-top: 1px solid rgba(201,168,76,0.2); border-bottom: 1px solid rgba(201,168,76,0.2); padding: 3rem 4rem; text-align: center; }
+  .demo-strip-inner { max-width: 800px; margin: 0 auto; }
+  .demo-label { font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+  .demo-text { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.3rem, 3vw, 1.9rem); font-weight: 300; line-height: 1.5; color: var(--paper); margin-bottom: 1.5rem; }
+  .demo-text strong { color: var(--gold); font-weight: 400; }
+  .demo-number { display: inline-flex; align-items: center; gap: 1rem; background: rgba(10,10,15,0.6); border: 1px solid rgba(201,168,76,0.3); padding: 1rem 2rem; font-family: 'Roboto Mono', monospace; font-size: 1.6rem; font-weight: 500; color: var(--gold); letter-spacing: 0.08em; text-decoration: none; transition: all 0.3s; }
+  .demo-number:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); }
+  .phone-svg { width: 20px; height: 20px; fill: var(--gold); }
+  .demo-sub { margin-top: 1rem; font-size: 0.8rem; color: var(--silver); }
+
+  /* SECTIONS */
+  section { padding: 6rem 4rem; }
+  .section-eyebrow { font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 300; line-height: 1.2; margin-bottom: 1rem; }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .section-sub { color: var(--silver); font-size: 1rem; line-height: 1.7; max-width: 500px; font-weight: 300; }
+
+  /* SERVICES */
+  .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1100px; margin: 3rem auto 0; }
+
+  .service-card { border: 1px solid rgba(201,168,76,0.15); padding: 2.5rem; background: rgba(10,10,15,0.4); transition: all 0.3s; position: relative; overflow: hidden; }
+  .service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0; transition: opacity 0.3s; }
+  .service-card:hover { border-color: rgba(201,168,76,0.35); }
+  .service-card:hover::before { opacity: 1; }
+  .service-icon { font-size: 1.8rem; margin-bottom: 1.2rem; display: block; }
+  .service-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: var(--paper); margin-bottom: 0.5rem; }
+  .service-tag { display: inline-block; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); border: 1px solid rgba(201,168,76,0.3); padding: 0.2rem 0.6rem; margin-bottom: 1rem; }
+  .service-card p { color: var(--silver); font-size: 0.88rem; line-height: 1.7; margin-bottom: 1.2rem; }
+  .service-features { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .service-features li { font-size: 0.82rem; color: var(--silver); display: flex; align-items: center; gap: 0.5rem; }
+  .service-features li::before { content: '—'; color: var(--gold); font-size: 0.7rem; }
+
+  /* HOW IT WORKS */
+  .how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; max-width: 1100px; margin: 0 auto; }
+  .steps { display: flex; flex-direction: column; gap: 2.5rem; margin-top: 3rem; }
+  .step { display: flex; gap: 1.5rem; align-items: flex-start; opacity: 0; transform: translateX(-20px); transition: all 0.6s ease; }
+  .step.visible { opacity: 1; transform: translateX(0); }
+  .step-num { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 300; color: rgba(201,168,76,0.3); line-height: 1; min-width: 2rem; }
+  .step-content h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: var(--paper); margin-bottom: 0.4rem; }
+  .step-content p { color: var(--silver); font-size: 0.9rem; line-height: 1.6; }
+
+  .visual-card { background: linear-gradient(145deg, rgba(201,168,76,0.08), rgba(10,10,15,0.8)); border: 1px solid rgba(201,168,76,0.2); padding: 3rem; position: relative; overflow: hidden; }
+  .visual-card::before { content: ''; position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; background: radial-gradient(circle, rgba(201,168,76,0.06), transparent 70%); }
+  .call-sim { position: relative; z-index: 1; }
+  .call-sim-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(201,168,76,0.15); }
+  .avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-dim)); display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--ink); font-weight: 600; }
+  .caller-info h4 { font-size: 0.9rem; font-weight: 500; color: var(--paper); }
+  .caller-info p { font-size: 0.75rem; color: var(--gold); }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #4caf50; margin-left: auto; animation: pulse 1.5s infinite; }
+  .messages { display: flex; flex-direction: column; gap: 1rem; }
+  .msg { display: flex; gap: 0.75rem; align-items: flex-start; opacity: 0; animation: fadeIn 0.5s ease forwards; }
+  .msg:nth-child(1) { animation-delay: 0.5s; }
+  .msg:nth-child(2) { animation-delay: 1.5s; }
+  .msg:nth-child(3) { animation-delay: 2.5s; }
+  .msg:nth-child(4) { animation-delay: 3.5s; }
+  .msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-dim)); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: var(--ink); font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+  .msg-bubble { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.15); padding: 0.6rem 1rem; font-size: 0.8rem; color: var(--paper); line-height: 1.4; max-width: 240px; }
+  .msg.caller { flex-direction: row-reverse; }
+  .msg.caller .msg-avatar { background: rgba(138,138,149,0.3); color: var(--paper); }
+  .msg.caller .msg-bubble { background: rgba(42,42,53,0.6); border-color: rgba(138,138,149,0.2); }
+
+  /* PRICING */
+  #pricing { background: rgba(42,42,53,0.2); }
+  .pricing-wrap { max-width: 1100px; margin: 0 auto; }
+  .pricing-header { text-align: center; margin-bottom: 4rem; }
+  .pricing-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .pricing-card { border: 1px solid rgba(201,168,76,0.15); padding: 2.5rem; position: relative; transition: all 0.3s; background: rgba(10,10,15,0.5); }
+  .pricing-card:hover { border-color: rgba(201,168,76,0.4); transform: translateY(-4px); }
+  .pricing-card.featured { border-color: var(--gold); background: linear-gradient(145deg, rgba(201,168,76,0.08), rgba(10,10,15,0.8)); }
+  .featured-badge { position: absolute; top: -1px; right: 2rem; background: var(--gold); color: var(--ink); font-size: 0.65rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.3rem 0.8rem; }
+  .pricing-label { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--silver); margin-bottom: 1.5rem; }
+  .pricing-amount { font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 300; color: var(--gold); line-height: 1; margin-bottom: 0.4rem; }
+  .pricing-amount sup { font-size: 1.2rem; vertical-align: super; }
+  .pricing-unit { font-size: 0.8rem; color: var(--silver); margin-bottom: 2rem; }
+  .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
+  .pricing-features li { font-size: 0.85rem; color: var(--silver); display: flex; align-items: center; gap: 0.5rem; }
+  .pricing-features li::before { content: '—'; color: var(--gold); font-size: 0.7rem; }
+
+  .setup-box { max-width: 1100px; margin: 2.5rem auto 0; border: 1px solid rgba(201,168,76,0.2); background: rgba(201,168,76,0.04); padding: 2rem 2.5rem; display: grid; grid-template-columns: 1fr 1px 1fr; gap: 2rem; align-items: start; }
+  .setup-divider { background: rgba(201,168,76,0.15); align-self: stretch; }
+  .setup-item h4 { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600; color: var(--gold); margin-bottom: 0.5rem; }
+  .setup-item p { font-size: 0.82rem; color: var(--silver); line-height: 1.6; }
+  .pricing-note { text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: var(--silver); }
+
+  /* WHO */
+  .who-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin: 3rem auto 0; max-width: 1100px; }
+  .who-card { border: 1px solid rgba(201,168,76,0.1); padding: 1.5rem; transition: all 0.3s; background: rgba(10,10,15,0.3); text-align: center; }
+  .who-card:hover { border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.04); }
+  .who-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
+  .who-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--paper); margin-bottom: 0.5rem; }
+  .who-card p { font-size: 0.8rem; color: var(--silver); line-height: 1.5; }
+
+  /* CONTACT */
+  #contact { background: rgba(20,20,28,0.8); }
+  .contact-wrap { max-width: 900px; margin: 0 auto; text-align: center; }
+  .contact-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3.5rem; }
+  .contact-card { border: 1px solid rgba(201,168,76,0.15); padding: 2.5rem 2rem; background: rgba(10,10,15,0.5); transition: all 0.3s; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .contact-card:hover { border-color: rgba(201,168,76,0.35); }
+  .contact-card-icon { font-size: 2rem; }
+  .contact-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: var(--paper); }
+  .contact-card p { font-size: 0.82rem; color: var(--silver); line-height: 1.5; }
+  .contact-phone { font-family: 'Roboto Mono', monospace; font-size: 1.25rem; font-weight: 500; color: var(--gold); letter-spacing: 0.08em; text-decoration: none; border: 1px solid rgba(201,168,76,0.3); padding: 0.7rem 1.4rem; transition: all 0.3s; display: inline-block; margin-top: 0.5rem; }
+  .contact-phone:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); }
+  .contact-email { font-family: 'Roboto Mono', monospace; font-size: 0.9rem; font-weight: 400; color: var(--gold); letter-spacing: 0.04em; text-decoration: none; border: 1px solid rgba(201,168,76,0.3); padding: 0.7rem 1.4rem; transition: all 0.3s; display: inline-block; margin-top: 0.5rem; }
+  .contact-email:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); }
+
+  /* FOOTER */
+  footer { padding: 2.5rem 4rem; border-top: 1px solid rgba(201,168,76,0.1); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--gold); font-weight: 600; }
+  .footer-logo span { color: var(--silver); font-weight: 300; }
+  footer p { font-size: 0.75rem; color: var(--silver); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 900px) {
+    nav { padding: 1.2rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 4rem 1.5rem; }
+    .hero { padding: 7rem 1.5rem 3rem; }
+    .demo-strip { padding: 2.5rem 1.5rem; }
+    .services-grid { grid-template-columns: 1fr; }
+    .how-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .pricing-cards { grid-template-columns: 1fr; }
+    .setup-box { grid-template-columns: 1fr; }
+    .setup-divider { display: none; }
+    .who-grid { grid-template-columns: repeat(2, 1fr); }
+    .contact-cards { grid-template-columns: 1fr; }
+    footer { padding: 2rem 1.5rem; flex-direction: column; text-align: center; }
+  }
+  
+.form-group { display:flex; flex-direction:column; gap:0.5rem; }
+.form-group label { font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--silver); }
+.form-group input, .form-group select, .form-group textarea { background:rgba(42,42,53,0.4); border:1px solid rgba(201,168,76,0.15); color:var(--paper); padding:0.85rem 1rem; font-family:'DM Sans',sans-serif; font-size:0.9rem; font-weight:300; outline:none; transition:border-color 0.3s; width:100%; -webkit-appearance:none; }
+.form-group select option { background:var(--charcoal); }
+.form-group input:focus, .form-group select:focus { border-color:var(--gold); }
+.form-submit { background:var(--gold); color:var(--ink); border:none; padding:1rem 2rem; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.3s; width:100%; }
+.form-submit:hover { background:var(--gold-light); }
+
+window.addEventListener('load', function() {
+  var form = document.getElementById('contactForm');
+  if (!form) return;
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var btn = document.getElementById('submitBtn');
+    var success = document.getElementById('formSuccess');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    try {
+      var response = await fetch('https://formspree.io/f/xgondjrp', {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' }
+      });
+      if (response.ok) {
+        success.style.display = 'block';
+        btn.style.display = 'none';
+        form.reset();
+      } else {
+        throw new Error('Failed');
+      }
+    } catch(err) {
+      btn.disabled = false;
+      btn.textContent = 'Send Message';
+      alert('Something went wrong. Please try again.');
+    }
+  });
+});
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Call<span>Zen</span></a>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow"><span>AI Call Service for Australian Business</span></div>
+    <h1 class="hero-title">You run your business.<br><em>We handle your calls.</em></h1>
+    <p class="hero-subtitle">CallZen is a fully managed AI call service — answering inbound calls, following up with leads, and booking appointments. 24/7, always on.</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">Talk To Us</a>
+      <a href="#services" class="btn-secondary">See What We Do</a>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO STRIP -->
+<div class="demo-strip">
+  <div class="demo-strip-inner">
+    <p class="demo-label">Live Demo</p>
+    <p class="demo-text">Experience it yourself. Call <strong>Jessy</strong>, our AI Sales Consultant — she'll walk you through what CallZen can do for your business.</p>
+    <a href="tel:+61468001919" class="demo-number">
+      <svg class="phone-svg" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+      <span class="phone-num">+61 468 001 919</span>
+    </a>
+    <p class="demo-sub">Call anytime — Jessy is always available</p>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div style="max-width:1100px;margin:0 auto;">
+    <p class="section-eyebrow reveal" style="text-align:center;">What We Offer</p>
+    <h2 class="section-title reveal" style="text-align:center;">Inbound answers.<br><em>Outbound growth.</em></h2>
+    <p class="section-sub reveal" style="margin:0 auto;text-align:center;">Two services. One fully managed solution. No staff to hire. No technology to manage.</p>
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <span class="service-icon">📲</span>
+        <span class="service-tag">Inbound</span>
+        <h3>AI Receptionist</h3>
+        <p>Never miss a call. Our AI answers every inbound call professionally — handling enquiries, booking appointments, and capturing leads around the clock.</p>
+        <ul class="service-features">
+          <li>24/7 call answering</li>
+          <li>Appointment booking</li>
+          <li>FAQ handling</li>
+          <li>Lead capture & call summary</li>
+          <li>After hours & weekend cover</li>
+        </ul>
+      </div>
+      <div class="service-card reveal">
+        <span class="service-icon">📞</span>
+        <span class="service-tag">Outbound</span>
+        <h3>AI Outreach Campaigns</h3>
+        <p>Turn your existing contacts into revenue. Our AI calls your leads and customers to follow up, re-engage, confirm appointments, or collect feedback — at scale.</p>
+        <ul class="service-features">
+          <li>Lead follow-up calls</li>
+          <li>Appointment reminders</li>
+          <li>Win-back campaigns</li>
+          <li>Post-service feedback</li>
+          <li>DNCR compliant</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" style="background:rgba(20,20,28,0.5);">
+  <div class="how-grid">
+    <div>
+      <p class="section-eyebrow reveal">How It Works</p>
+      <h2 class="section-title reveal">Set up once.<br><em>We do the rest.</em></h2>
+      <p class="section-sub reveal">No technology to manage. No staff to train. A seamless extension of your business from day one.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-content"><h3>We onboard your business</h3><p>Complete a short questionnaire. We build your custom AI — trained on your services, pricing, and FAQs — within 3 business days.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-content"><h3>Calls forward to us instantly</h3><p>Simple call forwarding on your existing number. After hours, after 2 rings, or all calls. No hardware. No changes to how you work.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-content"><h3>Every call handled perfectly</h3><p>Our AI answers naturally, handles questions, books appointments, and captures leads. You get a summary after every call.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-content"><h3>Itemised bill, end of month</h3><p>Pay only for what's used. No lock-in contracts. A clear, itemised invoice every month — nothing hidden.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="visual-card reveal">
+      <div class="call-sim">
+        <div class="call-sim-header">
+          <div class="avatar">J</div>
+          <div class="caller-info"><h4>Jessy — CallZen AI</h4><p>Active Call</p></div>
+          <div class="live-dot"></div>
+        </div>
+        <div class="messages">
+          <div class="msg"><div class="msg-avatar">J</div><div class="msg-bubble">Hi, thanks for calling Brisbane Physio. This is Jessy — how can I help you today?</div></div>
+          <div class="msg caller"><div class="msg-avatar">👤</div><div class="msg-bubble">Hi, I'd like to book an appointment for next Tuesday?</div></div>
+          <div class="msg"><div class="msg-avatar">J</div><div class="msg-bubble">Absolutely! I have Tuesday at 10am or 2:30pm available. Which works best?</div></div>
+          <div class="msg caller"><div class="msg-avatar">👤</div><div class="msg-bubble">10am please, thank you!</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="pricing-wrap">
+    <div class="pricing-header">
+      <p class="section-eyebrow reveal">Transparent Pricing</p>
+      <h2 class="section-title reveal">Pay only for what <em>you use.</em></h2>
+      <p class="section-sub reveal" style="margin:0 auto;">No lock-in contracts. No hidden fees. Postpaid monthly billing in AUD.</p>
+    </div>
+	<p class="reveal" style="text-align:center;font-size:0.8rem;color:var(--silver);margin-bottom:2rem;letter-spacing:0.05em;">One simple bill — usage charges + SMS, with a $75/month minimum. That's it.</p>
+    <div class="pricing-cards">
+      <div class="pricing-card reveal">
+        <p class="pricing-label">Per Call · Usage Based</p>
+        <div class="pricing-amount"><sup>$</sup>0.90</div>
+        <p class="pricing-unit">per minute · AUD</p>
+        <ul class="pricing-features">
+          <li>Inbound & outbound calls</li>
+          <li>Natural AI voice</li>
+          <li>Call summary every time</li>
+          <li>Appointment booking</li>
+          <li>Lead capture</li>
+        </ul>
+      </div>
+      <div class="pricing-card featured reveal">
+        <div class="featured-badge">How Billing Works</div>
+        <p class="pricing-label">Monthly Minimum Spend</p>
+        <div class="pricing-amount"><sup>$</sup>75</div>
+        <p class="pricing-unit">per month · AUD · minimum spend</p>
+        <ul class="pricing-features">
+          <li>Everything in call handling</li>
+          <li>Custom AI for your business</li>
+          <li>Fully managed — you do nothing</li>
+          <li>Itemised monthly invoice</li>
+          <li>No lock-in contract</li>
+        </ul>
+        <a href="#contact" class="btn-primary" style="display:block;text-align:center;margin-top:1.5rem;">Get Started</a>
+      </div>
+      <div class="pricing-card reveal">
+        <p class="pricing-label">SMS</p>
+        <div class="pricing-amount"><sup>$</sup>0.25</div>
+        <p class="pricing-unit">per SMS sent · AUD</p>
+        <ul class="pricing-features">
+          <li>Post-call follow-up SMS</li>
+          <li>Appointment confirmations</li>
+          <li>Outbound campaign messages</li>
+          <li>Custom templates</li>
+          <li>Itemised on monthly bill</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="setup-box reveal">
+      <div class="setup-item">
+        <h4>🆓 Free Setup</h4>
+        <p>Getting started costs nothing. If our standard template suits your business, we build and go live at no charge. Just fill in a short questionnaire — we handle the rest.</p>
+      </div>
+      <div class="setup-divider"></div>
+      <div class="setup-item">
+        <h4>🔗 Custom Integration Setup</h4>
+        <p>Need us to connect to your existing booking system, CRM, or other apps? We charge a low one-time setup fee, quoted upfront before we begin. No surprises.</p>
+      </div>
+    </div>
+
+    <p class="pricing-note reveal">No lock-in contract · Cancel anytime · Live in 3 business days</p>
+  </div>
+</section>
+
+<!-- WHO WE SERVE -->
+<section id="who" style="background:rgba(20,20,28,0.5);">
+  <div style="max-width:1100px;margin:0 auto;">
+    <p class="section-eyebrow reveal" style="text-align:center;">Who We Serve</p>
+    <h2 class="section-title reveal" style="text-align:center;">Built for <em>Australia's</em> small businesses.</h2>
+    <div class="who-grid">
+      <div class="who-card reveal"><span class="who-icon">🏋️</span><h3>Gyms & Fitness</h3><p>Capture membership enquiries and follow up with leads — even when you're on the floor.</p></div>
+      <div class="who-card reveal"><span class="who-icon">💇</span><h3>Salons & Spas</h3><p>Book appointments while you're with a client. Never interrupt your work for the phone.</p></div>
+      <div class="who-card reveal"><span class="who-icon">🏥</span><h3>Clinics & Allied Health</h3><p>Handle bookings and FAQs professionally — without the cost of a full-time receptionist.</p></div>
+      <div class="who-card reveal"><span class="who-icon">🦷</span><h3>Dental Practices</h3><p>After-hours enquiries answered. New patients captured. Appointments booked on weekends.</p></div>
+	  <div class="who-card reveal"><span class="who-icon">🍽️</span><h3>Restaurants & Cafés</h3><p>Follow up with diners, collect feedback from last night's visit, and fill reservation gaps with outbound campaigns.</p></div>
+	  <div class="who-card reveal"><span class="who-icon">🏡</span><h3>Real Estate</h3><p>Answer property enquiries instantly, qualify leads, and follow up with buyers and renters — in business hours or after hours and on weekends.</p></div>
+    </div>
+	<p class="reveal" style="text-align:center;margin-top:2.5rem;font-size:0.85rem;color:var(--silver);max-width:600px;margin-left:auto;margin-right:auto;">If your business receives or makes calls — we can help. <a href="#contact" style="color:var(--gold);text-decoration:none;">Talk to us</a> about your specific needs.</p>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-wrap" style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;">
+  <div>
+    <p class="section-eyebrow reveal">Get In Touch</p>
+    <h2 class="section-title reveal">Ready to never <em>miss a call?</em></h2>
+    <p class="section-sub reveal">Two ways to reach us. Pick what works for you.</p>
+    <div style="display:flex;flex-direction:column;gap:1.5rem;margin-top:2.5rem;">
+      <div class="contact-card reveal">
+        <img src="jessy.jpg" alt="Jessy" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid rgba(201,168,76,0.4);">
+        <h3>Talk to Jessy</h3>
+        <p>Call our AI Sales Consultant anytime. She'll explain what CallZen can do for your business and gets you started on the process.</p>
+        <a href="tel:+61468001919" class="contact-phone"><span class="phone-num">+61 468 001 919</span></a>
+        <p style="font-size:0.72rem;color:var(--silver);">Available 24/7</p>
+      </div>
+      <div class="contact-card reveal">
+        <div class="contact-card-icon">👋</div>
+        <h3>Talk to Varun</h3>
+        <p>Prefer a real conversation? Call or email Varun directly.</p>
+        <a href="tel:+61469327722" class="contact-phone"><span class="phone-num">+61 469 327 722</span></a>
+        <a href="mailto:hello@callzen.com.au" class="contact-email">hello@callzen.com.au</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal" style="padding-top:1rem;">
+    <p class="section-eyebrow">Send Us a Message</p>
+    <p style="color:var(--silver);font-size:0.88rem;margin-bottom:2rem;line-height:1.6;">Fill in your details and we'll be in touch within one business day.</p>
+    <form action="https://formspree.io/f/xgondjrp" method="POST" id="contactForm" style="display:flex;flex-direction:column;gap:1.2rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" name="name" placeholder="Jane Smith" required>
+        </div>
+        <div class="form-group">
+          <label>Business Name</label>
+          <input type="text" name="business" placeholder="Brisbane Physio" required>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="jane@yourbusiness.com.au" required>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" name="phone" placeholder="+61 4xx xxx xxx">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Business Type</label>
+        <select name="business_type">
+          <option value="">Select your industry</option>
+          <option>Gym / Fitness Studio</option>
+          <option>Gym / Fitness Studio</option>
+          <option>Salon / Spa / Beauty</option>
+          <option>Physio / Chiro / Allied Health</option>
+          <option>Dental Practice</option>
+          <option>Restaurant / Café</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>What do you need?</label>
+        <select name="service_needed">
+          <option value="">Select a service</option>
+          <option>Inbound — AI Receptionist</option>
+          <option>Outbound — AI Campaigns</option>
+          <option>Both</option>
+          <option>Not sure yet</option>
+        </select>
+      </div>
+      <button type="submit" class="form-submit" id="submitBtn">Send Message</button>
+      <div id="formSuccess" style="display:none;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);padding:1.2rem;text-align:center;color:var(--gold);font-size:0.88rem;">
+        ✓ &nbsp; Message received. We'll be in touch within one business day.
+      </div>
+    </form>
+  </div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Call<span>Zen</span></div>
+  <p>© 2026 CallZen · Brisbane, Queensland, Australia</p>
+  <p style="font-family:'Roboto Mono',monospace;font-size:0.72rem;color:var(--silver);">hello@callzen.com.au</p>
+</footer>
+
+<script>
+  const reveals = document.querySelectorAll('.reveal, .step');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) setTimeout(() => entry.target.classList.add('visible'), 100);
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
