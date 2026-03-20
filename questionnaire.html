@@ -742,14 +742,29 @@
       btn.textContent = 'Submitting...';
       try {
         var formData = new FormData(form);
-        var object = {};
-        formData.forEach(function(value, key) {
-          if (object[key]) {
-            object[key] = object[key] + ', ' + value;
-          } else {
-            object[key] = value;
-          }
-        });
+		var object = {};
+		formData.forEach(function(value, key) {
+			if (object[key]) {
+				object[key] = object[key] + ', ' + value;
+			} else {
+			object[key] = value;
+		}
+	});
+
+	// Manually collect selected radio buttons and checkboxes
+	var radioNames = ['service_type','call_forwarding','booking_action','booking_system','ai_tone','call_summaries','post_call_sms'];
+	radioNames.forEach(function(name) {
+		var selected = form.querySelector('.check-item.selected input[name="' + name + '"]');
+		if (selected) object[name] = selected.value;
+		else object[name] = 'Not selected';
+	});
+
+	// Collect checked days
+	var days = [];
+	form.querySelectorAll('.check-item.selected input[name="days_open"]').forEach(function(cb) {
+		days.push(cb.value);
+	});
+	object['days_open'] = days.length > 0 ? days.join(', ') : 'Not selected';
         var response = await fetch('https://api.web3forms.com/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
