@@ -213,6 +213,20 @@
 .form-group input:focus, .form-group select:focus { border-color:var(--gold); }
 .form-submit { background:var(--gold); color:var(--ink); border:none; padding:1rem 2rem; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.3s; width:100%; }
 .form-submit:hover { background:var(--gold-light); }
+
+@media (max-width: 768px) {
+  .contact-wrap {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-wrap div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -279,12 +293,12 @@
       <div class="service-card reveal">
         <span class="service-icon">📞</span>
         <span class="service-tag">Outbound</span>
-        <h3>AI Outreach Campaigns</h3>
+        <h3>AI Outreach Calls</h3>
         <p>Turn your existing contacts into revenue. Our AI calls your leads and customers to follow up, re-engage, confirm appointments, or collect feedback — at scale.</p>
         <ul class="service-features">
           <li>Lead follow-up calls</li>
           <li>Appointment reminders</li>
-          <li>Win-back campaigns</li>
+          <li>Lead Callbacks</li>
           <li>Post-service feedback</li>
           <li>DNCR compliant</li>
         </ul>
@@ -380,7 +394,7 @@
         <ul class="pricing-features">
           <li>Post-call follow-up SMS</li>
           <li>Appointment confirmations</li>
-          <li>Outbound campaign messages</li>
+          <li>Outbound reach messages</li>
           <li>Custom templates</li>
           <li>Itemised on monthly bill</li>
         </ul>
@@ -418,7 +432,7 @@
       <div class="who-card reveal"><span class="who-icon">💇</span><h3>Salons & Spas</h3><p>Book appointments while you're with a client. Never interrupt your work for the phone.</p></div>
       <div class="who-card reveal"><span class="who-icon">🏥</span><h3>Clinics & Allied Health</h3><p>Handle bookings and FAQs professionally — without the cost of a full-time receptionist.</p></div>
       <div class="who-card reveal"><span class="who-icon">🦷</span><h3>Dental Practices</h3><p>After-hours enquiries answered. New patients captured. Appointments booked on weekends.</p></div>
-	  <div class="who-card reveal"><span class="who-icon">🍽️</span><h3>Restaurants & Cafés</h3><p>Follow up with diners, collect feedback from last night's visit, and fill reservation gaps with outbound campaigns.</p></div>
+	  <div class="who-card reveal"><span class="who-icon">🍽️</span><h3>Restaurants & Cafés</h3><p>Follow up with diners, collect feedback from last night's visit, and fill reservation gaps with outbound calls.</p></div>
 	  <div class="who-card reveal"><span class="who-icon">🏡</span><h3>Real Estate</h3><p>Answer property enquiries instantly, qualify leads, and follow up with buyers and renters — in business hours or after hours and on weekends.</p></div>
     </div>
 	<p class="reveal" style="text-align:center;margin-top:2.5rem;font-size:0.85rem;color:var(--silver);max-width:600px;margin-left:auto;margin-right:auto;">If your business receives or makes calls — we can help. <a href="#contact" style="color:var(--gold);text-decoration:none;">Talk to us</a> about your specific needs.</p>
@@ -493,7 +507,7 @@
         <select name="service_needed">
           <option value="">Select a service</option>
           <option>Inbound — AI Receptionist</option>
-          <option>Outbound — AI Campaigns</option>
+          <option>Outbound — AI Reach out</option>
           <option>Both</option>
           <option>Not sure yet</option>
         </select>
@@ -510,7 +524,7 @@
 <!-- FOOTER -->
 <footer>
   <div class="footer-logo">Call<span>Zen</span></div>
-  <p>© 2026 CallZen · Brisbane, Queensland, Australia</p>
+  <p>© 2026 CallZen · Brisbane, Queensland, Australia · ABN 52 270 430 589</p>
   <p style="font-family:'Roboto Mono',monospace;font-size:0.72rem;color:var(--silver);">hello@callzen.com.au</p>
 </footer>
 
