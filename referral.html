@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CallZen — Refer a Business</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230a0a0f'/><path d='M30 35c0-2.8 2.2-5 5-5h30c2.8 0 5 2.2 5 5v20c0 2.8-2.2 5-5 5H45l-10 10V55h-5V35z' fill='%23c9a84c'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f7f4ef;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --gold-dim: #7a6230;
+    --charcoal: #2a2a35;
+    --silver: #8a8a95;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 2rem 4rem;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,10,15,0.9);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(12px);
+  }
+
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 600; color: var(--gold); text-decoration: none; }
+  .logo span { color: var(--paper); font-weight: 300; }
+
+  .header-tag { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--silver); border: 1px solid rgba(201,168,76,0.2); padding: 0.3rem 0.8rem; }
+
+  .page-hero { padding: 5rem 4rem 3rem; text-align: center; position: relative; overflow: hidden; }
+  .page-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(201,168,76,0.07), transparent 70%); }
+  .page-hero-content { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.7s ease 0.1s forwards; }
+  .hero-eyebrow::before, .hero-eyebrow::after { content: ''; width: 2rem; height: 1px; background: var(--gold); }
+  .hero-eyebrow span { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
+
+  .page-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 5vw, 4rem); font-weight: 300; line-height: 1.1; margin-bottom: 1rem; opacity: 0; animation: fadeUp 0.7s ease 0.2s forwards; }
+  .page-title em { font-style: italic; color: var(--gold); }
+
+  .page-sub { color: var(--silver); font-size: 0.95rem; line-height: 1.7; max-width: 520px; margin: 0 auto; opacity: 0; animation: fadeUp 0.7s ease 0.3s forwards; }
+
+  .form-container { max-width: 800px; margin: 3rem auto 5rem; padding: 0 4rem; }
+
+  .section-header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(201,168,76,0.12); }
+  .section-num { font-family: 'Cormorant Garamond', serif; font-size: 3.5rem; font-weight: 300; color: rgba(201,168,76,0.2); line-height: 1; margin-bottom: 0.3rem; }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 300; color: var(--paper); margin-bottom: 0.4rem; }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .section-desc { font-size: 0.85rem; color: var(--silver); line-height: 1.6; }
+
+  .field-group { display: flex; flex-direction: column; gap: 2rem; }
+  .form-block { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .field { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .field > label {
+    font-size: 0.88rem;
+    font-weight: 400;
+    color: var(--paper);
+    letter-spacing: 0.01em;
+  }
+
+  .field label .required { color: var(--gold); margin-left: 2px; }
+
+  .field input,
+  .field select,
+  .field textarea {
+    background: rgba(42,42,53,0.4);
+    border: 1px solid rgba(201,168,76,0.15);
+    color: var(--paper);
+    padding: 0.9rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.3s, background 0.3s;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  .field select option { background: #1a1a22; }
+  .field input::placeholder, .field textarea::placeholder { color: rgba(138,138,149,0.5); }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold); background: rgba(42,42,53,0.6); }
+  .field textarea { resize: vertical; min-height: 110px; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+
+  .field-hint { font-size: 0.75rem; color: rgba(138,138,149,0.7); margin-top: 0.3rem; line-height: 1.5; }
+
+  .divider {
+    height: 1px;
+    background: rgba(201,168,76,0.1);
+    margin: 0.5rem 0;
+  }
+
+  .block-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.25rem;
+  }
+
+  .form-nav { display: flex; justify-content: flex-end; align-items: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(201,168,76,0.1); }
+
+  .btn-submit { background: var(--gold); border: none; color: var(--ink); padding: 0.85rem 2.5rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.05em; cursor: pointer; transition: all 0.3s; }
+  .btn-submit:hover { background: var(--gold-light); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .success-screen { display: none; text-align: center; padding: 5rem 2rem; max-width: 600px; margin: 0 auto; }
+  .success-icon { width: 72px; height: 72px; border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; font-size: 1.8rem; }
+  .success-screen h2 { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 300; margin-bottom: 1rem; }
+  .success-screen h2 em { font-style: italic; color: var(--gold); }
+  .success-screen p { color: var(--silver); line-height: 1.7; font-size: 0.9rem; margin-bottom: 0.5rem; }
+  .success-details { margin-top: 2rem; border: 1px solid rgba(201,168,76,0.2); padding: 1.5rem; background: rgba(201,168,76,0.04); text-align: left; }
+  .success-details p { font-size: 0.82rem; color: var(--silver); margin-bottom: 0.5rem; }
+  .success-details p:last-child { margin-bottom: 0; }
+  .success-details strong { color: var(--gold); font-weight: 400; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  footer { padding: 2rem 4rem; border-top: 1px solid rgba(201,168,76,0.1); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--gold); font-weight: 600; }
+  .footer-logo span { color: var(--silver); font-weight: 300; }
+  footer p { font-size: 0.72rem; color: var(--silver); }
+
+  @media (max-width: 768px) {
+    header { padding: 1.2rem 1.5rem; }
+    .page-hero { padding: 3rem 1.5rem 2rem; }
+    .form-container { padding: 0 1.5rem; margin: 2rem auto 4rem; }
+    .field-row { grid-template-columns: 1fr; }
+    footer { padding: 1.5rem; flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="https://callzen.com.au" class="logo">Call<span>Zen</span></a>
+  <span class="header-tag">Referral Program</span>
+</header>
+
+<div class="page-hero">
+  <div class="page-hero-content">
+    <div class="hero-eyebrow"><span>Refer a Business</span></div>
+    <h1 class="page-title">Know a business that needs an <em>AI receptionist?</em></h1>
+    <p class="page-sub">Fill in the details below and we'll take it from there. Takes less than 2 minutes.</p>
+	<div style="display:inline-block;margin-top:1.8rem;border:1px solid rgba(201,168,76,0.3);padding:0.9rem 1.8rem;background:rgba(201,168,76,0.05);opacity:0;animation:fadeUp 0.7s ease 0.4s forwards;">
+  <p style="font-size:0.8rem;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem;">Referral Reward</p>
+  <p style="font-size:0.88rem;color:var(--paper);font-weight:300;">Earn <strong style="color:var(--gold);font-weight:500;">$100</strong> when the business you refer stays with CallZen for 3 months.</p>
+</div>
+  </div>
+</div>
+
+<div class="form-container">
+  <form id="referralForm">
+    <input type="hidden" name="access_key" value="4eb43f21-030f-429b-b6c1-ddf7efdc4667">
+    <input type="hidden" name="subject" value="CallZen Referral Submission">
+    <input type="hidden" name="from_name" value="CallZen Referral Form">
+
+    <div class="field-group">
+
+      <!-- YOUR DETAILS -->
+      <div>
+        <div class="section-header">
+          <div class="section-num">01</div>
+          <h2 class="section-title">Your <em>details.</em></h2>
+          <p class="section-desc">Who's making this referral? We'll keep you in the loop.</p>
+        </div>
+        <div class="form-block">
+          <div class="field-row">
+            <div class="field">
+              <label>Your Name <span class="required">*</span></label>
+              <input type="text" name="referrer_name" placeholder="Jane Smith" required>
+            </div>
+            <div class="field">
+              <label>Your Phone Number</label>
+              <input type="tel" name="referrer_phone" placeholder="+61 4xx xxx xxx">
+            </div>
+          </div>
+          <div class="field">
+            <label>Your Email Address</label>
+            <input type="email" name="referrer_email" placeholder="jane@example.com.au">
+            <p class="field-hint">We'll notify you when we reach out to your referral.</p>
+          </div>
+          <div class="field">
+            <label>Your relationship to the referred business</label>
+            <select name="referrer_relationship">
+              <option value="">Select relationship</option>
+              <option>Friend or family</option>
+              <option>Current CallZen client</option>
+              <option>Colleague or business contact</option>
+              <option>Industry peer</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- REFERRED BUSINESS -->
+      <div>
+        <div class="section-header">
+          <div class="section-num">02</div>
+          <h2 class="section-title">The business you're <em>referring.</em></h2>
+          <p class="section-desc">Tell us about the business and who we should contact.</p>
+        </div>
+        <div class="form-block">
+          <div class="field-row">
+            <div class="field">
+              <label>Business Name <span class="required">*</span></label>
+              <input type="text" name="referred_business_name" placeholder="Brisbane Physio" required>
+            </div>
+            <div class="field">
+              <label>Business Type</label>
+              <select name="referred_business_type">
+                <option value="">Select industry</option>
+                <option>Gym / Fitness Studio</option>
+                <option>Salon / Spa / Beauty</option>
+                <option>Physio / Chiro / Allied Health</option>
+                <option>Dental Practice</option>
+                <option>Medical Clinic</option>
+                <option>Restaurant / Café</option>
+                <option>Real Estate</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Contact Name <span class="required">*</span></label>
+              <input type="text" name="referred_contact_name" placeholder="Business owner or manager" required>
+            </div>
+            <div class="field">
+              <label>Contact Phone <span class="required">*</span></label>
+              <input type="tel" name="referred_contact_phone" placeholder="+61 7xx xxx xxx" required>
+            </div>
+          </div>
+          <div class="field">
+            <label>Contact Email</label>
+            <input type="email" name="referred_contact_email" placeholder="owner@brisbane-physio.com.au">
+          </div>
+          <div class="field">
+            <label>Anything we should know before reaching out?</label>
+            <textarea name="referral_notes" placeholder="e.g. They're currently overwhelmed with missed calls, looking to cut reception costs, best to call in the mornings..."></textarea>
+            <p class="field-hint">Any context will help us have a more relevant first conversation with them.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-nav">
+      <button type="submit" class="btn-submit" id="btnSubmit">Submit Referral →</button>
+    </div>
+  </form>
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✓</div>
+    <h2>Referral <em>received.</em></h2>
+    <p>Thanks for the introduction. We'll be in touch with them shortly.</p>
+    <div class="success-details">
+      <p><strong>What happens next:</strong></p>
+      <p>— We'll reach out to the business you referred</p>
+      <p>— If they sign up, we'll let you know</p>
+      <p>— We appreciate every referral — thank you</p>
+    </div>
+    <p style="margin-top:1.5rem;"><a href="https://callzen.com.au" style="color:var(--gold);text-decoration:none;font-size:0.85rem;">← Back to callzen.com.au</a></p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Call<span>Zen</span></div>
+  <p>© 2026 CallZen · Brisbane, Queensland, Australia</p>
+  <p style="font-family:'Roboto Mono',monospace;font-size:0.72rem;">hello@callzen.com.au</p>
+</footer>
+
+<script>
+  window.onload = function() {
+    var form = document.getElementById('referralForm');
+    if (!form) return;
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      try {
+        var formData = new FormData(form);
+        var object = {};
+        formData.forEach(function(value, key) {
+          object[key] = value;
+        });
+        var response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(object)
+        });
+        var data = await response.json();
+        if (data.success) {
+          form.style.display = 'none';
+          document.getElementById('successScreen').style.display = 'block';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          throw new Error('Failed');
+        }
+      } catch(err) {
+        btn.disabled = false;
+        btn.textContent = 'Submit Referral →';
+        alert('Something went wrong. Please try again or email us at hello@callzen.com.au');
+      }
+    });
+  };
+</script>
+
+</body>
+</html>
