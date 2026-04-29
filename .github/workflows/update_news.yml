@@ -1,36 +1,40 @@
 permissions:
   contents: write
   
-name: Update News
+name: Generate News JSON
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # every 30 minutes
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 jobs:
-  build:
+  generate:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      - name: Sanity check files
+        run: |
+          ls -l
+          cat requirements.txt
+
       - name: Install dependencies
-        run: pip install feedparser
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify requests installed
+        run: |
+          python - <<EOF
+          import requests
+          print("requests OK:", requests.__version__)
+          EOF
 
       - name: Run script
         run: python generate_news.py
-
-      - name: Commit and push
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git add news.json
-          git diff --cached --quiet || git commit -m "Update news"
-          git push
