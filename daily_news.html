@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Daily Brief — Varun's News Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ─── RESET ─── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+/* ─── TOKENS ─── */
+:root{
+  --bg:         #0c0e14;
+  --surface:    #13161f;
+  --surface2:   #1b1f2d;
+  --border:     rgba(255,255,255,0.07);
+  --border2:    rgba(255,255,255,0.13);
+  --text:       #e8eaf0;
+  --muted:      #7c8399;
+  --faint:      #464d63;
+  --accent:     #4f7cff;
+  --accent2:    #00c9a7;
+  --aus:        #00c9a7;
+  --ind:        #ff7c4f;
+  --intl:       #4f7cff;
+  --yt:         #ff4444;
+  --radius:     14px;
+  --radius-sm:  8px;
+  --glow:       0 0 40px rgba(79,124,255,0.08);
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  line-height:1.6;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ─── BACKGROUND TEXTURE ─── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(79,124,255,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0,201,167,0.05) 0%, transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ─── LAYOUT ─── */
+.wrap{
+  max-width:1160px;
+  margin:0 auto;
+  padding:0 2rem 5rem;
+  position:relative;
+  z-index:1;
+}
+
+/* ─── HEADER ─── */
+header{
+  padding:2.5rem 0 0;
+  margin-bottom:3rem;
+  border-bottom:1px solid var(--border);
+  padding-bottom:2rem;
+}
+
+.header-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:1rem;
+  margin-bottom:1.5rem;
+}
+
+.brand{display:flex;flex-direction:column;gap:0.3rem}
+
+.brand-name{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(2rem,4vw,3rem);
+  font-weight:400;
+  color:var(--text);
+  letter-spacing:-0.02em;
+  line-height:1;
+}
+
+.brand-name em{
+  font-style:italic;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.brand-sub{
+  font-size:13px;
+  color:var(--muted);
+  font-weight:400;
+  letter-spacing:0.01em;
+}
+
+.header-meta{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:0.4rem;
+}
+
+.date-badge{
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:5px 12px;
+  border-radius:20px;
+}
+
+.section-pills{
+  display:flex;
+  gap:0.5rem;
+  flex-wrap:wrap;
+}
+
+.pill{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  padding:3px 10px;
+  border-radius:20px;
+  border:1px solid;
+}
+
+.pill-intl{color:var(--intl);border-color:rgba(79,124,255,0.3);background:rgba(79,124,255,0.08)}
+.pill-aus {color:var(--aus); border-color:rgba(0,201,167,0.3); background:rgba(0,201,167,0.08)}
+.pill-ind {color:var(--ind); border-color:rgba(255,124,79,0.3); background:rgba(255,124,79,0.08)}
+.pill-yt  {color:var(--yt);  border-color:rgba(255,68,68,0.3);  background:rgba(255,68,68,0.08)}
+
+/* ─── SECTION HEADER ─── */
+.section-hd{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:1.5rem;
+  padding-bottom:0.75rem;
+  border-bottom:1px solid var(--border);
+}
+
+.section-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+.dot-intl{background:var(--intl);box-shadow:0 0 8px var(--intl)}
+.dot-aus {background:var(--aus); box-shadow:0 0 8px var(--aus)}
+.dot-ind {background:var(--ind); box-shadow:0 0 8px var(--ind)}
+.dot-yt  {background:var(--yt);  box-shadow:0 0 8px var(--yt)}
+
+.section-title{
+  font-family:'DM Serif Display',serif;
+  font-size:1.3rem;
+  font-weight:400;
+  color:var(--text);
+  letter-spacing:-0.01em;
+}
+
+.section-count{
+  margin-left:auto;
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  color:var(--faint);
+  letter-spacing:0.08em;
+}
+
+/* ─── NEWS SECTION ─── */
+.news-section{margin-bottom:3.5rem}
+
+.news-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:1.25rem;
+}
+
+/* ─── NEWS CARD ─── */
+.news-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:1.4rem;
+  transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;
+  animation:fadeUp 0.4s ease both;
+  position:relative;
+  overflow:hidden;
+}
+
+.news-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  border-radius:var(--radius) var(--radius) 0 0;
+  opacity:0;
+  transition:opacity 0.2s;
+}
+
+.news-card:hover{
+  border-color:var(--border2);
+  transform:translateY(-3px);
+  box-shadow:var(--glow);
+}
+
+.news-card:hover::before{opacity:1}
+
+.card-intl::before{background:linear-gradient(90deg,var(--intl),transparent)}
+.card-aus::before {background:linear-gradient(90deg,var(--aus),transparent)}
+.card-ind::before {background:linear-gradient(90deg,var(--ind),transparent)}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(12px)}
+  to  {opacity:1;transform:translateY(0)}
+}
+
+.card-source{
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  margin-bottom:0.6rem;
+}
+
+.src-intl{color:var(--intl)}
+.src-aus {color:var(--aus)}
+.src-ind {color:var(--ind)}
+
+.card-title{
+  font-family:'DM Serif Display',serif;
+  font-size:1.05rem;
+  line-height:1.35;
+  color:var(--text);
+  margin-bottom:0.75rem;
+  font-weight:400;
+}
+
+.card-summary{
+  font-size:13.5px;
+  color:var(--muted);
+  line-height:1.7;
+  font-weight:300;
+  display:-webkit-box;
+  -webkit-line-clamp:4;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+/* ─── DIVIDER ─── */
+.section-divider{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);
+  margin:0 0 3.5rem;
+}
+
+/* ─── YOUTUBE SECTION ─── */
+.yt-section{margin-bottom:3.5rem}
+
+.yt-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:1.25rem;
+}
+
+.yt-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;
+  animation:fadeUp 0.4s ease both;
+}
+
+.yt-card:hover{
+  border-color:rgba(255,68,68,0.3);
+  transform:translateY(-3px);
+  box-shadow:0 0 30px rgba(255,68,68,0.07);
+}
+
+.yt-embed-wrap{
+  position:relative;
+  padding-bottom:56.25%;
+  height:0;
+  background:#000;
+}
+
+.yt-embed-wrap iframe{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  border:none;
+}
+
+.yt-card-body{
+  padding:1rem 1.2rem 1.1rem;
+}
+
+.yt-channel{
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--yt);
+  margin-bottom:0.3rem;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.yt-channel svg{width:12px;height:12px;fill:var(--yt)}
+
+.yt-title{
+  font-size:13.5px;
+  font-weight:500;
+  color:var(--text);
+  line-height:1.4;
+}
+
+/* ─── LOADING / ERROR ─── */
+.state-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:3rem 2rem;
+  text-align:center;
+  color:var(--muted);
+}
+
+.spinner{
+  width:28px;height:28px;
+  border:2px solid var(--border2);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin 0.7s linear infinite;
+  margin:0 auto 1rem;
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.state-label{
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+}
+
+/* ─── FOOTER ─── */
+footer{
+  border-top:1px solid var(--border);
+  padding-top:1.5rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:1rem;
+}
+
+.footer-info{
+  font-size:12px;
+  color:var(--faint);
+}
+
+.footer-info strong{color:var(--muted)}
+
+.btn-refresh{
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  padding:8px 18px;
+  background:transparent;
+  color:var(--text);
+  border:1px solid var(--border2);
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  transition:background 0.15s,border-color 0.15s;
+}
+
+.btn-refresh:hover{background:var(--surface2);border-color:var(--accent)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:640px){
+  .wrap{padding:0 1rem 3rem}
+  .header-top{flex-direction:column}
+  .header-meta{align-items:flex-start}
+  .news-grid,.yt-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div class="brand">
+        <div class="brand-name">Daily <em>Brief</em></div>
+        <div class="brand-sub">Your curated news digest — auto-refreshed by GitHub Actions</div>
+      </div>
+      <div class="header-meta">
+        <div class="date-badge" id="today-date">Loading…</div>
+        <div class="section-pills">
+          <span class="pill pill-intl">🌍 World</span>
+          <span class="pill pill-aus">🇦🇺 Australia</span>
+          <span class="pill pill-ind">🇮🇳 India</span>
+          <span class="pill pill-yt">▶ YouTube</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- NEWS SECTIONS (filled by JS) -->
+  <div id="news-sections">
+    <div class="state-box">
+      <div class="spinner"></div>
+      <div class="state-label">Loading headlines from news.json…</div>
+    </div>
+  </div>
+
+  <!-- YOUTUBE SECTION -->
+  <div class="section-divider"></div>
+  <div class="yt-section">
+    <div class="section-hd">
+      <span class="section-dot dot-yt"></span>
+      <span class="section-title">Latest from YouTube</span>
+      <span class="section-count">6 CHANNELS</span>
+    </div>
+    <div class="yt-grid" id="yt-grid"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-info">
+      <strong id="footer-time">—</strong> &nbsp;·&nbsp;
+      Powered by GitHub Actions &amp; Python &nbsp;·&nbsp; news.json
+    </div>
+    <button class="btn-refresh" onclick="location.reload()">↺ Reload Page</button>
+  </footer>
+
+</div>
+<script>
+/* ─────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────── */
+function esc(str){
+  if(!str) return '';
+  return String(str)
+    .replace(/&amp;/g,'&')
+    .replace(/&lt;/g,'<')
+    .replace(/&gt;/g,'>')
+    .replace(/&quot;/g,'"')
+    .replace(/&#39;/g,"'")
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function cleanSummary(raw){
+  if(!raw) return '';
+  // raw can be array of strings or plain string
+  const text = Array.isArray(raw) ? raw.join(' ') : String(raw);
+  return text
+    // strip the repeated "Summarize this news article:" prompt artifact
+    .replace(/Summarize this news article:\s*/gi,'')
+    // remove duplicated whitespace
+    .replace(/\s{2,}/g,' ')
+    // strip encoding artifacts like â, â, â etc (common Windows-1252 mojibake)
+    .replace(/[^\x00-\x7Fâ€™â€œâ€â€˜]/g,'')
+    .replace(/â€™/g,"'").replace(/â€œ/g,'"').replace(/â€/g,'"').replace(/â€˜/g,"'")
+    .replace(/â/g,'').replace(/€/g,'').replace(/™/g,"'").replace(/œ/g,'"')
+    // trim and cap length
+    .trim()
+    .slice(0,420);
+}
+
+/* ─────────────────────────────────────────
+   DATE
+───────────────────────────────────────── */
+const now = new Date();
+document.getElementById('today-date').textContent = now.toLocaleDateString('en-AU',{
+  weekday:'long',year:'numeric',month:'long',day:'numeric'
+});
+document.getElementById('footer-time').textContent =
+  'Last loaded '+now.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+
+/* ─────────────────────────────────────────
+   NEWS: load news.json (same folder)
+───────────────────────────────────────── */
+const SECTIONS=[
+  {key:'international',label:'International',dot:'dot-intl',card:'card-intl',src:'src-intl',count:'3 STORIES'},
+  {key:'australia',    label:'Australia',    dot:'dot-aus', card:'card-aus', src:'src-aus', count:'3 STORIES'},
+  {key:'india',        label:'India',        dot:'dot-ind', card:'card-ind', src:'src-ind', count:'4 STORIES'},
+];
+
+async function loadNews(){
+  const container = document.getElementById('news-sections');
+  try{
+    const res = await fetch('./news.json?t='+Date.now());
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+
+    let html='';
+    SECTIONS.forEach(sec=>{
+      const items = data[sec.key] || [];
+      const cards = items.map((item,i)=>{
+        const title   = esc(item.title || item.headline || 'Untitled');
+        const source  = esc(item.source || '');
+        const summary = cleanSummary(item.summary || item.description || '');
+        return `
+        <div class="news-card ${sec.card}" style="animation-delay:${i*90}ms">
+          ${source?`<div class="card-source ${sec.src}">${source}</div>`:''}
+          <div class="card-title">${title}</div>
+          ${summary?`<div class="card-summary">${summary}</div>`:''}
+        </div>`;
+      }).join('');
+
+      html+=`
+      <div class="news-section">
+        <div class="section-hd">
+          <span class="section-dot ${sec.dot}"></span>
+          <span class="section-title">${sec.label}</span>
+          <span class="section-count">${sec.count}</span>
+        </div>
+        <div class="news-grid">${cards||'<div class="state-box"><div class="state-label">No stories found</div></div>'}</div>
+      </div>
+      <div class="section-divider"></div>`;
+    });
+
+    container.innerHTML = html;
+  } catch(e){
+    container.innerHTML=`
+    <div class="state-box">
+      <div class="state-label" style="color:#ff6b6b">Could not load news.json</div>
+      <p style="margin-top:0.75rem;font-size:13px;color:var(--faint)">
+        Make sure <strong>news.json</strong> is in the same folder as this HTML file.<br>
+        Error: ${e.message}
+      </p>
+    </div>`;
+  }
+}
+
+loadNews();
+
+/* ─────────────────────────────────────────
+   YOUTUBE: latest video embed
+   Using nocookie domain + rel=0 to block
+   recommended videos after playback.
+   We load the channel's latest-video via
+   the /feeds/videos.xml RSS (no API key).
+───────────────────────────────────────── */
+const CHANNELS=[
+  {handle:'thedeshbhakt',  name:'The Deshbhakt',   id:'UCmTM_hPCeckqN3cPWtYZZcg'},
+  {handle:'SundaySarthak', name:'Sunday Sarthak',  id:'UCvOFwpVLvvFiMFiHCGVSqcQ'},
+  {handle:'mohak_mangal',  name:'Mohak Mangal',    id:'UCE7L8mrs2GIXD0EpqK4PTBA'},
+  {handle:'AbhiandNiyu',   name:'Abhi and Niyu',   id:'UCaJMfAUZ0Y7PcFkgFJimXEg'},
+  {handle:'dhruvrathee',   name:'Dhruv Rathee',    id:'UC4rlAVgAK0SGk-yTfe48Qpw'},
+  {handle:'openletteryt',  name:'Open Letter',     id:'UCiKAWVH8WHQNKC5BZrpS3Lw'},
+];
+
+// YouTube RSS feed doesn't need API key but has CORS issues from file://
+// Solution: use an iframe that loads the channel page in a sandboxed player.
+// We embed using /embed/videoseries?list=UU{channelId_without_UC} which always
+// plays the latest uploads playlist — no API key, no CORS, works locally.
+// rel=0 prevents related videos. autoplay=0. modestbranding=1.
+
+function buildYTCards(){
+  const grid = document.getElementById('yt-grid');
+  grid.innerHTML = CHANNELS.map((ch,i)=>{
+    // UU playlist = Uploads playlist for a channel
+    // Channel ID starts with UC, replace UC with UU to get uploads playlist
+    const uploadsId = 'UU' + ch.id.slice(2);
+    // This loads the latest video from the uploads playlist
+    const src = `https://www.youtube-nocookie.com/embed/videoseries?list=${uploadsId}&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1`;
+    return `
+    <div class="yt-card" style="animation-delay:${i*120}ms">
+      <div class="yt-embed-wrap">
+        <iframe
+          src="${src}"
+          title="${ch.name} — Latest Video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+          loading="lazy"
+        ></iframe>
+      </div>
+      <div class="yt-card-body">
+        <div class="yt-channel">
+          <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+          ${ch.name}
+        </div>
+        <div class="yt-title">Latest upload</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+buildYTCards();
+</script>
+</body>
+</html>
