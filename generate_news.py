@@ -52,7 +52,7 @@ def summarize_with_ollama(text):
 
 def summarize_with_hf(text):
     from transformers import pipeline
-    summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+    summarizer = pipeline(task="text-generation", model="facebook/bart-large-cnn")
     chunks = [text[i:i+1000] for i in range(0, len(text), 1000)]
     summaries = []
     for chunk in chunks[:3]:
