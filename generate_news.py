@@ -6,6 +6,8 @@ from readability import Document
 import subprocess
 import shutil
 import sys
+import urllib.request
+import xml.etree.ElementTree as ET
 
 # ---------------------------
 # CONFIG
@@ -28,6 +30,16 @@ ARTICLES_PER_CATEGORY = {
     "australia": 3,
     "india": 4
 }
+
+# ── YouTube channels to fetch latest video from ──
+YOUTUBE_CHANNELS = [
+    {"channel_name": "The Deshbhakt",  "channel_id": "UCmTM_hPCeckqN3cPWtYZZcg"},
+    {"channel_name": "Sunday Sarthak", "channel_id": "UC5fcjujOsqD-126Chn_BAuA"},
+    {"channel_name": "Mohak Mangal",   "channel_id": "UCz4a7agVFr1TxU-mpAP8hkw"},
+    {"channel_name": "Abhi and Niyu",  "channel_id": "UCsDTy8jvHcwMvSZf_JGi-FA"},
+    {"channel_name": "Dhruv Rathee",   "channel_id": "UC4rlAVgAK0SGk-yTfe48Qpw"},
+    {"channel_name": "Open Letter",    "channel_id": "UCPJ_UzD4PEC-_vwN32amlIQ"},
+]
 
 OUTPUT_FILE = "news.json"
 
@@ -146,6 +158,62 @@ def fetch_news(feed_urls, limit):
     return articles
 
 # ---------------------------
+# YOUTUBE FETCHING
+# ---------------------------
+
+def fetch_latest_youtube_video(channel_id, channel_name):
+    """
+    Fetches the latest video from a YouTube channel using its
+    public Atom RSS feed. No API key required.
+    Returns a dict with video_id and title, or None values on failure.
+    """
+    url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            xml_data = resp.read()
+
+        NS = {
+            "atom":  "http://www.w3.org/2005/Atom",
+            "yt":    "http://www.youtube.com/xml/schemas/2015",
+            "media": "http://search.yahoo.com/mrss/",
+        }
+        root = ET.fromstring(xml_data)
+        entry = root.find("atom:entry", NS)  # first entry = latest video
+
+        if entry is None:
+            raise ValueError("No entries in feed")
+
+        video_id = entry.find("yt:videoId", NS).text
+        title    = entry.find("atom:title",  NS).text
+
+        print(f"  ✓ {channel_name}: {title}")
+        return {
+            "channel_name": channel_name,
+            "channel_id":   channel_id,
+            "video_id":     video_id,
+            "title":        title,
+        }
+
+    except Exception as e:
+        print(f"  ⚠ {channel_name}: failed — {e}")
+        return {
+            "channel_name": channel_name,
+            "channel_id":   channel_id,
+            "video_id":     None,
+            "title":        None,
+        }
+
+
+def fetch_all_youtube():
+    """Fetch latest video for every channel in YOUTUBE_CHANNELS."""
+    print("\nFetching latest YouTube videos...")
+    return [
+        fetch_latest_youtube_video(ch["channel_id"], ch["channel_name"])
+        for ch in YOUTUBE_CHANNELS
+    ]
+
+# ---------------------------
 # MAIN
 # ---------------------------
 
@@ -158,6 +226,9 @@ def main():
             feeds,
             ARTICLES_PER_CATEGORY.get(category, 3)
         )
+
+    # ── Fetch YouTube latest videos and add to output ──
+    output["youtube"] = fetch_all_youtube()
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
