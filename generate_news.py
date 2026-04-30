@@ -37,7 +37,7 @@ YOUTUBE_CHANNELS = [
     {"channel_name": "Sunday Sarthak", "channel_id": "UC5fcjujOsqD-126Chn_BAuA"},
     {"channel_name": "Mohak Mangal",   "channel_id": "UCz4a7agVFr1TxU-mpAP8hkw"},
     {"channel_name": "Abhi and Niyu",  "channel_id": "UCsDTy8jvHcwMvSZf_JGi-FA"},
-    {"channel_name": "Dhruv Rathee",   "channel_id": "UC4rlAVgAK0SGk-yTfe48Qpw"},
+    {"channel_name": "Dhruv Rathee",   "channel_id": "UC-CSyyi47VX1lD9zyeABW3w"},
     {"channel_name": "Open Letter",    "channel_id": "UCPJ_UzD4PEC-_vwN32amlIQ"},
 ]
 
@@ -162,64 +162,46 @@ def fetch_news(feed_urls, limit):
 # ---------------------------
 
 def is_short_by_title(title):
-    """Check if a video is a Short based on title keywords. Fast, no network call."""
     t = (title or "").lower()
     return "#shorts" in t or "#short" in t or t.strip() == "shorts"
 
 
-def is_short_by_duration(entry, NS):
-    """
-    Check duration from the media:content tag in the RSS feed.
-    YouTube Shorts are <= 180 seconds.
-    Returns False if duration missing (safe default = assume full video).
-    """
-    try:
-        media_content = entry.find("media:group/media:content", NS)
-        if media_content is None:
-            media_content = entry.find("media:content", NS)
-        if media_content is not None:
-            duration = media_content.get("duration")
-            if duration and int(duration) <= 180:
-                return True
-    except Exception:
-        pass
-    return False
-
-
 def fetch_latest_youtube_video(channel_id, channel_name):
     """
-    Fetches the latest FULL video (non-Short) from a YouTube channel
-    via its public Atom RSS feed. No API key, no external HTTP checks.
-    Uses title keywords + media duration from the feed to filter Shorts.
-    Falls back to the first entry if all entries appear to be Shorts.
+    Fetches latest non-Short video using feedparser (already in requirements).
+    feedparser handles YouTube RSS reliably in GitHub Actions.
+    Shorts detection: title keywords only — no extra HTTP calls.
     """
     url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            xml_data = resp.read()
+        feed = feedparser.parse(url)
 
-        NS = {
-            "atom":  "http://www.w3.org/2005/Atom",
-            "yt":    "http://www.youtube.com/xml/schemas/2015",
-            "media": "http://search.yahoo.com/mrss/",
-        }
-        root = ET.fromstring(xml_data)
-        entries = root.findall("atom:entry", NS)
+        if feed.get("status") != 200:
+            raise ValueError(f"RSS returned status {feed.get('status', 'unknown')}")
 
+        entries = feed.entries
         if not entries:
-            raise ValueError("No entries in feed")
+            raise ValueError("Feed has no entries")
 
         for entry in entries[:15]:
-            video_id = entry.find("yt:videoId", NS).text
-            title    = entry.find("atom:title",  NS).text
+            video_id = entry.get("yt_videoid", "")
+            title    = entry.get("title", "")
 
-            if is_short_by_title(title):
-                print(f"  ↷ {channel_name}: skip Short (title) — {title}")
+            if not video_id:
                 continue
 
-            if is_short_by_duration(entry, NS):
-                print(f"  ↷ {channel_name}: skip Short (duration ≤180s) — {title}")
+            if is_short_by_title(title):
+                print(f"  ↷ {channel_name}: skip Short — {title}")
+                continue
+
+            # YouTube Shorts also have very short duration in media_content
+            duration = None
+            for mc in entry.get("media_content", []):
+                duration = mc.get("duration")
+                if duration:
+                    break
+            if duration and int(duration) <= 61:
+                print(f"  ↷ {channel_name}: skip Short (duration={duration}s) — {title}")
                 continue
 
             print(f"  ✓ {channel_name}: {title}")
@@ -230,31 +212,24 @@ def fetch_latest_youtube_video(channel_id, channel_name):
                 "title":        title,
             }
 
-        # Fallback: nothing was filtered out cleanly, use the first entry
-        print(f"  ⚠ {channel_name}: could not filter Shorts, using latest entry")
+        # Fallback — use first entry regardless
+        print(f"  ⚠ {channel_name}: all entries may be Shorts, using first")
+        e = entries[0]
         return {
             "channel_name": channel_name,
             "channel_id":   channel_id,
-            "video_id":     entries[0].find("yt:videoId", NS).text,
-            "title":        entries[0].find("atom:title",  NS).text,
+            "video_id":     e.get("yt_videoid", ""),
+            "title":        e.get("title", ""),
         }
 
     except Exception as e:
-        print(f"  ⚠ {channel_name}: failed — {e}")
+        print(f"  ✗ {channel_name}: FAILED — {e}")
         return {
             "channel_name": channel_name,
             "channel_id":   channel_id,
             "video_id":     None,
             "title":        None,
         }
-def fetch_all_youtube():
-    """Fetch latest video for every channel in YOUTUBE_CHANNELS."""
-    print("\nFetching latest YouTube videos...")
-    return [
-        fetch_latest_youtube_video(ch["channel_id"], ch["channel_name"])
-        for ch in YOUTUBE_CHANNELS
-    ]
-
 # ---------------------------
 # MAIN
 # ---------------------------
