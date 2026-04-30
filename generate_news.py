@@ -230,6 +230,15 @@ def fetch_latest_youtube_video(channel_id, channel_name):
             "video_id":     None,
             "title":        None,
         }
+
+def fetch_all_youtube():
+    """Fetch latest video for every channel in YOUTUBE_CHANNELS."""
+    print("\nFetching latest YouTube videos...")
+    return [
+        fetch_latest_youtube_video(ch["channel_id"], ch["channel_name"])
+        for ch in YOUTUBE_CHANNELS
+    ]
+
 # ---------------------------
 # MAIN
 # ---------------------------
