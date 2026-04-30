@@ -34,7 +34,7 @@ ARTICLES_PER_CATEGORY = {
 # ── YouTube channels to fetch latest video from ──
 YOUTUBE_CHANNELS = [
     {"channel_name": "The Deshbhakt",  "channel_id": "UCmTM_hPCeckqN3cPWtYZZcg"},
-    {"channel_name": "Sunday Sarthak", "channel_id": "UC5fcjujOsqD-126Chn_BAuA"},
+    {"channel_name": "Sunday Sarthak", "channel_id": "UC_hVYmNLOBCToJBl9IJFFNQ"},
     {"channel_name": "Mohak Mangal",   "channel_id": "UCz4a7agVFr1TxU-mpAP8hkw"},
     {"channel_name": "Abhi and Niyu",  "channel_id": "UCsDTy8jvHcwMvSZf_JGi-FA"},
     {"channel_name": "Dhruv Rathee",   "channel_id": "UC-CSyyi47VX1lD9zyeABW3w"},
@@ -168,41 +168,52 @@ def is_short_by_title(title):
 
 def fetch_latest_youtube_video(channel_id, channel_name):
     """
-    Fetches latest non-Short video using feedparser (already in requirements).
-    feedparser handles YouTube RSS reliably in GitHub Actions.
-    Shorts detection: title keywords only — no extra HTTP calls.
+    Fetches the latest non-Short video using requests + xml.etree.
+    Uses requests (already in requirements.txt) to fetch the raw XML,
+    avoiding feedparser's URL query-string parsing issues with YouTube RSS.
     """
     url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     try:
-        feed = feedparser.parse(url)
+        r = requests.get(url, timeout=15, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1)"
+        })
+        if r.status_code != 200:
+            raise ValueError(f"HTTP {r.status_code}")
 
-        if feed.get("status") != 200:
-            raise ValueError(f"RSS returned status {feed.get('status', 'unknown')}")
+        NS = {
+            "atom":  "http://www.w3.org/2005/Atom",
+            "yt":    "http://www.youtube.com/xml/schemas/2015",
+            "media": "http://search.yahoo.com/mrss/",
+        }
+        root = ET.fromstring(r.content)
+        entries = root.findall("atom:entry", NS)
 
-        entries = feed.entries
         if not entries:
-            raise ValueError("Feed has no entries")
+            raise ValueError("No entries in feed")
+
+        first_video_id = entries[0].find("yt:videoId", NS).text
+        first_title    = entries[0].find("atom:title", NS).text
 
         for entry in entries[:15]:
-            video_id = entry.get("yt_videoid", "")
-            title    = entry.get("title", "")
+            video_id = entry.find("yt:videoId", NS).text
+            title    = entry.find("atom:title",  NS).text
 
             if not video_id:
                 continue
 
             if is_short_by_title(title):
-                print(f"  ↷ {channel_name}: skip Short — {title}")
+                print(f"  ↷ {channel_name}: skip Short (title) — {title}")
                 continue
 
-            # YouTube Shorts also have very short duration in media_content
-            duration = None
-            for mc in entry.get("media_content", []):
-                duration = mc.get("duration")
-                if duration:
-                    break
-            if duration and int(duration) <= 61:
-                print(f"  ↷ {channel_name}: skip Short (duration={duration}s) — {title}")
-                continue
+            # Check duration from media:content — Shorts are ≤ 60s
+            media_content = entry.find("media:group/media:content", NS)
+            if media_content is None:
+                media_content = entry.find("media:content", NS)
+            if media_content is not None:
+                duration = media_content.get("duration")
+                if duration and int(duration) <= 61:
+                    print(f"  ↷ {channel_name}: skip Short ({duration}s) — {title}")
+                    continue
 
             print(f"  ✓ {channel_name}: {title}")
             return {
@@ -212,14 +223,13 @@ def fetch_latest_youtube_video(channel_id, channel_name):
                 "title":        title,
             }
 
-        # Fallback — use first entry regardless
-        print(f"  ⚠ {channel_name}: all entries may be Shorts, using first")
-        e = entries[0]
+        # Fallback — nothing filtered, use very first entry
+        print(f"  ⚠ {channel_name}: fallback to first entry")
         return {
             "channel_name": channel_name,
             "channel_id":   channel_id,
-            "video_id":     e.get("yt_videoid", ""),
-            "title":        e.get("title", ""),
+            "video_id":     first_video_id,
+            "title":        first_title,
         }
 
     except Exception as e:
