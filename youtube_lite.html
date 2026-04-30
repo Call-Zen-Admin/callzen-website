@@ -269,9 +269,14 @@ const CHANNELS = [
 
 const VIDEOS_PER_CHANNEL = 5;
 
-/* rss2json converts YouTube's Atom RSS to JSON with proper CORS headers.
-   Free tier: 10,000 req/month. Works from any browser including local files. */
-const RSS2JSON = 'https://api.rss2json.com/v1/api.json';
+/* Multiple CORS proxies tried in order — if one fails, next is used.
+   YouTube RSS XML cannot be fetched directly from a browser due to CORS.
+   These proxies relay the request server-side and return with CORS headers. */
+const PROXIES = [
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  url => `https://thingproxy.freeboard.io/fetch/${url}`,
+];
 
 /* ══════════════════════════════════════════
    UTILITIES
@@ -326,30 +331,49 @@ function skeletonBlock(ch, idx){
 /* ══════════════════════════════════════════
    FETCH — one channel
 ══════════════════════════════════════════ */
+/* Parse YouTube Atom XML into video list */
+function parseYouTubeXML(xmlText){
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(xmlText, 'application/xml');
+  const entries = Array.from(doc.querySelectorAll('entry'));
+  return entries.slice(0, VIDEOS_PER_CHANNEL).map(e => {
+    const videoId = e.querySelector('videoId')?.textContent || '';
+    const title   = e.querySelector('title')?.textContent   || '';
+    const pubDate = e.querySelector('published')?.textContent || '';
+    return { id: videoId, title, pubDate };
+  }).filter(v => v.id);
+}
+
+/* Try each proxy in order until one works */
+async function fetchWithProxies(rssUrl){
+  for(let i = 0; i < PROXIES.length; i++){
+    const proxyUrl = PROXIES[i](rssUrl);
+    try{
+      const res = await fetch(proxyUrl, {signal: AbortSignal.timeout(8000)});
+      if(!res.ok) continue;
+      const text = await res.text();
+      // allorigins wraps response in {contents: "..."} 
+      let xml = text;
+      try{
+        const json = JSON.parse(text);
+        if(json.contents) xml = json.contents;
+      } catch(e){ /* not JSON, use as-is */ }
+      if(!xml.includes('<entry>')) continue;
+      return xml;
+    } catch(e){
+      console.warn(`Proxy ${i+1} failed for ${rssUrl}:`, e.message);
+    }
+  }
+  throw new Error('All proxies failed');
+}
+
 async function fetchChannel(ch, idx){
   const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${ch.id}`;
-  const apiUrl = `${RSS2JSON}?rss_url=${encodeURIComponent(rssUrl)}&count=${VIDEOS_PER_CHANNEL}`;
-
   try{
-    const res  = await fetch(apiUrl);
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if(data.status !== 'ok') throw new Error(data.message || 'Feed error');
-
-    const items = (data.items || []).slice(0, VIDEOS_PER_CHANNEL);
-    if(!items.length) throw new Error('No videos');
-
-    const videos = items.map(item => {
-      const match = (item.link||'').match(/[?&]v=([A-Za-z0-9_-]{11})/);
-      return {
-        id:      match ? match[1] : null,
-        title:   item.title || '',
-        pubDate: item.pubDate || '',
-      };
-    }).filter(v => v.id);
-
+    const xml    = await fetchWithProxies(rssUrl);
+    const videos = parseYouTubeXML(xml);
+    if(!videos.length) throw new Error('No videos parsed');
     renderChannel(ch, idx, videos);
-
   } catch(e){
     renderError(ch, idx, e.message);
   }
