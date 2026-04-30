@@ -37,7 +37,7 @@ YOUTUBE_CHANNELS = [
     {"channel_name": "Sunday Sarthak", "channel_id": "UC5fcjujOsqD-126Chn_BAuA"},
     {"channel_name": "Mohak Mangal",   "channel_id": "UCz4a7agVFr1TxU-mpAP8hkw"},
     {"channel_name": "Abhi and Niyu",  "channel_id": "UCsDTy8jvHcwMvSZf_JGi-FA"},
-    {"channel_name": "Dhruv Rathee",   "channel_id": "UC-CSyyi47VX1lD9zyeABW3w"},
+    {"channel_name": "Dhruv Rathee",   "channel_id": "UC4rlAVgAK0SGk-yTfe48Qpw"},
     {"channel_name": "Open Letter",    "channel_id": "UCPJ_UzD4PEC-_vwN32amlIQ"},
 ]
 
@@ -161,50 +161,37 @@ def fetch_news(feed_urls, limit):
 # YOUTUBE FETCHING
 # ---------------------------
 
-def is_youtube_short(video_id):
+def is_short_by_title(title):
+    """Check if a video is a Short based on title keywords. Fast, no network call."""
+    t = (title or "").lower()
+    return "#shorts" in t or "#short" in t or t.strip() == "shorts"
+
+
+def is_short_by_duration(entry, NS):
     """
-    Checks if a video is a YouTube Short by calling the oEmbed endpoint
-    and checking if YouTube redirects /shorts/ URL — or by inspecting
-    the video page for the shorts marker.
-    Returns True if it's a Short, False if it's a regular video.
+    Check duration from the media:content tag in the RSS feed.
+    YouTube Shorts are <= 180 seconds.
+    Returns False if duration missing (safe default = assume full video).
     """
     try:
-        # YouTube returns a 200 for shorts at /shorts/<id> and
-        # redirects regular videos away from that path.
-        # We use a HEAD request to check — if it stays at /shorts/ it's a Short.
-        shorts_url = f"https://www.youtube.com/shorts/{video_id}"
-        req = urllib.request.Request(
-            shorts_url,
-            method="HEAD",
-            headers={"User-Agent": "Mozilla/5.0"}
-        )
-        # Don't follow redirects so we can inspect the response URL
-        opener = urllib.request.build_opener(urllib.request.HTTPRedirectHandler())
-        # Temporarily override to NOT follow redirects
-        class NoRedirect(urllib.request.HTTPRedirectHandler):
-            def redirect_request(self, req, fp, code, msg, headers, newurl):
-                return None
-        no_redirect_opener = urllib.request.build_opener(NoRedirect)
-        try:
-            no_redirect_opener.open(req, timeout=8)
-            # If we get a response without redirect, it's a Short
-            return True
-        except urllib.error.HTTPError as e:
-            if e.code in (301, 302, 303, 307, 308):
-                # Redirected away from /shorts/ — it's a regular video
-                return False
-            return True  # other error, assume short to be safe
+        media_content = entry.find("media:group/media:content", NS)
+        if media_content is None:
+            media_content = entry.find("media:content", NS)
+        if media_content is not None:
+            duration = media_content.get("duration")
+            if duration and int(duration) <= 180:
+                return True
     except Exception:
-        # On any failure, assume not a short so we don't skip valid videos
-        return False
+        pass
+    return False
 
 
 def fetch_latest_youtube_video(channel_id, channel_name):
     """
     Fetches the latest FULL video (non-Short) from a YouTube channel
-    using its public Atom RSS feed. No API key required.
-    Loops through up to 15 recent entries to skip any Shorts.
-    Returns a dict with video_id and title, or None values on failure.
+    via its public Atom RSS feed. No API key, no external HTTP checks.
+    Uses title keywords + media duration from the feed to filter Shorts.
+    Falls back to the first entry if all entries appear to be Shorts.
     """
     url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     try:
@@ -218,27 +205,23 @@ def fetch_latest_youtube_video(channel_id, channel_name):
             "media": "http://search.yahoo.com/mrss/",
         }
         root = ET.fromstring(xml_data)
-        entries = root.findall("atom:entry", NS)  # all recent videos
+        entries = root.findall("atom:entry", NS)
 
         if not entries:
             raise ValueError("No entries in feed")
 
-        for entry in entries[:15]:  # check up to 15 recent uploads
+        for entry in entries[:15]:
             video_id = entry.find("yt:videoId", NS).text
             title    = entry.find("atom:title",  NS).text
 
-            # Skip if title explicitly flags it as a Short
-            title_lower = (title or "").lower()
-            if "#shorts" in title_lower or "#short" in title_lower:
-                print(f"  ↷ {channel_name}: skipping Short (title flag) — {title}")
+            if is_short_by_title(title):
+                print(f"  ↷ {channel_name}: skip Short (title) — {title}")
                 continue
 
-            # Skip if YouTube confirms it's a Short via URL check
-            if is_youtube_short(video_id):
-                print(f"  ↷ {channel_name}: skipping Short (URL check) — {title}")
+            if is_short_by_duration(entry, NS):
+                print(f"  ↷ {channel_name}: skip Short (duration ≤180s) — {title}")
                 continue
 
-            # This is a regular video
             print(f"  ✓ {channel_name}: {title}")
             return {
                 "channel_name": channel_name,
@@ -247,16 +230,13 @@ def fetch_latest_youtube_video(channel_id, channel_name):
                 "title":        title,
             }
 
-        # All recent entries were Shorts — fall back to the very first one
-        print(f"  ⚠ {channel_name}: all recent videos are Shorts, using latest anyway")
-        entry    = entries[0]
-        video_id = entry.find("yt:videoId", NS).text
-        title    = entry.find("atom:title",  NS).text
+        # Fallback: nothing was filtered out cleanly, use the first entry
+        print(f"  ⚠ {channel_name}: could not filter Shorts, using latest entry")
         return {
             "channel_name": channel_name,
             "channel_id":   channel_id,
-            "video_id":     video_id,
-            "title":        title,
+            "video_id":     entries[0].find("yt:videoId", NS).text,
+            "title":        entries[0].find("atom:title",  NS).text,
         }
 
     except Exception as e:
@@ -267,8 +247,6 @@ def fetch_latest_youtube_video(channel_id, channel_name):
             "video_id":     None,
             "title":        None,
         }
-
-
 def fetch_all_youtube():
     """Fetch latest video for every channel in YOUTUBE_CHANNELS."""
     print("\nFetching latest YouTube videos...")
