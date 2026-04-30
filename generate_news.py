@@ -168,31 +168,30 @@ def is_short_by_title(title):
 
 def fetch_latest_youtube_video(channel_id, channel_name):
     """
-    Fetches the latest non-Short video using requests + xml.etree.
-    Uses requests (already in requirements.txt) to fetch the raw XML,
-    avoiding feedparser's URL query-string parsing issues with YouTube RSS.
+    Fetches the latest non-Short video using urllib.request + xml.etree.
+    Uses plain Mozilla/5.0 UA — exactly what worked originally on GitHub Actions.
+    Shorts filtered by title only (no extra HTTP calls).
+    Falls back to the first entry if all look like Shorts.
     """
     url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     try:
-        r = requests.get(url, timeout=15, headers={
-            "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1)"
-        })
-        if r.status_code != 200:
-            raise ValueError(f"HTTP {r.status_code}")
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            xml_data = resp.read()
 
         NS = {
             "atom":  "http://www.w3.org/2005/Atom",
             "yt":    "http://www.youtube.com/xml/schemas/2015",
             "media": "http://search.yahoo.com/mrss/",
         }
-        root = ET.fromstring(r.content)
+        root    = ET.fromstring(xml_data)
         entries = root.findall("atom:entry", NS)
 
         if not entries:
             raise ValueError("No entries in feed")
 
         first_video_id = entries[0].find("yt:videoId", NS).text
-        first_title    = entries[0].find("atom:title", NS).text
+        first_title    = entries[0].find("atom:title",  NS).text
 
         for entry in entries[:15]:
             video_id = entry.find("yt:videoId", NS).text
@@ -205,16 +204,6 @@ def fetch_latest_youtube_video(channel_id, channel_name):
                 print(f"  ↷ {channel_name}: skip Short (title) — {title}")
                 continue
 
-            # Check duration from media:content — Shorts are ≤ 60s
-            media_content = entry.find("media:group/media:content", NS)
-            if media_content is None:
-                media_content = entry.find("media:content", NS)
-            if media_content is not None:
-                duration = media_content.get("duration")
-                if duration and int(duration) <= 61:
-                    print(f"  ↷ {channel_name}: skip Short ({duration}s) — {title}")
-                    continue
-
             print(f"  ✓ {channel_name}: {title}")
             return {
                 "channel_name": channel_name,
@@ -223,8 +212,8 @@ def fetch_latest_youtube_video(channel_id, channel_name):
                 "title":        title,
             }
 
-        # Fallback — nothing filtered, use very first entry
-        print(f"  ⚠ {channel_name}: fallback to first entry")
+        # Fallback — all entries were Shorts or filtered, use first
+        print(f"  ⚠ {channel_name}: fallback to first entry — {first_title}")
         return {
             "channel_name": channel_name,
             "channel_id":   channel_id,
