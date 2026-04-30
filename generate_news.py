@@ -34,7 +34,7 @@ ARTICLES_PER_CATEGORY = {
 # ── YouTube channels to fetch latest video from ──
 YOUTUBE_CHANNELS = [
     {"channel_name": "The Deshbhakt",  "channel_id": "UCmTM_hPCeckqN3cPWtYZZcg"},
-    {"channel_name": "Sunday Sarthak", "channel_id": "UC_hVYmNLOBCToJBl9IJFFNQ"},
+    {"channel_name": "Sunday Sarthak", "channel_id": "UC5fcjujOsqD-126Chn_BAuA"},
     {"channel_name": "Mohak Mangal",   "channel_id": "UCz4a7agVFr1TxU-mpAP8hkw"},
     {"channel_name": "Abhi and Niyu",  "channel_id": "UCsDTy8jvHcwMvSZf_JGi-FA"},
     {"channel_name": "Dhruv Rathee",   "channel_id": "UC-CSyyi47VX1lD9zyeABW3w"},
@@ -161,22 +161,16 @@ def fetch_news(feed_urls, limit):
 # YOUTUBE FETCHING
 # ---------------------------
 
-def is_short_by_title(title):
-    t = (title or "").lower()
-    return "#shorts" in t or "#short" in t or t.strip() == "shorts"
-
-
 def fetch_latest_youtube_video(channel_id, channel_name):
     """
-    Fetches the latest non-Short video using urllib.request + xml.etree.
-    Uses plain Mozilla/5.0 UA — exactly what worked originally on GitHub Actions.
-    Shorts filtered by title only (no extra HTTP calls).
-    Falls back to the first entry if all look like Shorts.
+    Fetches the latest video from a YouTube channel using its
+    public Atom RSS feed. No API key required.
+    Returns a dict with video_id and title, or None values on failure.
     """
     url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:
             xml_data = resp.read()
 
         NS = {
@@ -184,51 +178,32 @@ def fetch_latest_youtube_video(channel_id, channel_name):
             "yt":    "http://www.youtube.com/xml/schemas/2015",
             "media": "http://search.yahoo.com/mrss/",
         }
-        root    = ET.fromstring(xml_data)
-        entries = root.findall("atom:entry", NS)
+        root = ET.fromstring(xml_data)
+        entry = root.find("atom:entry", NS)  # first entry = latest video
 
-        if not entries:
+        if entry is None:
             raise ValueError("No entries in feed")
 
-        first_video_id = entries[0].find("yt:videoId", NS).text
-        first_title    = entries[0].find("atom:title",  NS).text
+        video_id = entry.find("yt:videoId", NS).text
+        title    = entry.find("atom:title",  NS).text
 
-        for entry in entries[:15]:
-            video_id = entry.find("yt:videoId", NS).text
-            title    = entry.find("atom:title",  NS).text
-
-            if not video_id:
-                continue
-
-            if is_short_by_title(title):
-                print(f"  ↷ {channel_name}: skip Short (title) — {title}")
-                continue
-
-            print(f"  ✓ {channel_name}: {title}")
-            return {
-                "channel_name": channel_name,
-                "channel_id":   channel_id,
-                "video_id":     video_id,
-                "title":        title,
-            }
-
-        # Fallback — all entries were Shorts or filtered, use first
-        print(f"  ⚠ {channel_name}: fallback to first entry — {first_title}")
+        print(f"  ✓ {channel_name}: {title}")
         return {
             "channel_name": channel_name,
             "channel_id":   channel_id,
-            "video_id":     first_video_id,
-            "title":        first_title,
+            "video_id":     video_id,
+            "title":        title,
         }
 
     except Exception as e:
-        print(f"  ✗ {channel_name}: FAILED — {e}")
+        print(f"  ⚠ {channel_name}: failed — {e}")
         return {
             "channel_name": channel_name,
             "channel_id":   channel_id,
             "video_id":     None,
             "title":        None,
         }
+
 
 def fetch_all_youtube():
     """Fetch latest video for every channel in YOUTUBE_CHANNELS."""
