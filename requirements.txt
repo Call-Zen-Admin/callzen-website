@@ -1,6 +1,0 @@
-feedparser
-requests
-beautifulsoup4
-readability-lxml
-transformers>=4.38.0
-torch
