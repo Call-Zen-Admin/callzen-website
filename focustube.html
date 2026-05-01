@@ -849,27 +849,50 @@ body{
     </div>
 
     <div class="setup-card">
-      <h2>Get your free API key</h2>
-      <ul class="step-list">
-        <li><span class="step-num">1</span><span>Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> and sign in with Google</span></li>
-        <li><span class="step-num">2</span><span>Create a project → <strong>APIs &amp; Services</strong> → <strong>Enable APIs</strong> → search <strong>YouTube Data API v3</strong> → Enable</span></li>
-        <li><span class="step-num">3</span><span><strong>Credentials</strong> → <strong>Create Credentials</strong> → <strong>API Key</strong> → copy it</span></li>
-        <li><span class="step-num">4</span><span>Paste it below — stored only on your device, never shared</span></li>
-      </ul>
-      <div class="input-wrap">
-        <input class="api-input" id="api-key-input" type="password"
-          placeholder="AIzaSy..." autocomplete="off" spellcheck="false"/>
-      </div>
-      <div class="api-input-note">Starts with AIza • Stored only in your browser</div>
-      <div class="error-msg" id="setup-error"></div>
-      <button class="btn" id="setup-btn">Get Started →</button>
+      <h2>Sign in with Google</h2>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.65;margin-bottom:1.25rem">
+        FocusTube uses your Google account to access YouTube.<br/>
+        <strong style="color:var(--text)">We never see your password</strong> — Google handles it securely.<br/>
+        Your watch history and data stay private.
+      </p>
+      <div class="error-msg" id="setup-error" style="margin-bottom:0.75rem"></div>
+      <button class="btn" id="google-signin-btn" onclick="startGoogleAuth()">
+        <span style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <svg width="18" height="18" viewBox="0 0 48 48">
+            <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.6 29.3 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 6 1.1 8.2 3l5.7-5.7C34.3 5.5 29.4 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5c11 0 20.5-8 20.5-20.5 0-1.4-.1-2.7-.4-4z"/>
+            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 6 1.1 8.2 3l5.7-5.7C34.3 5.5 29.4 3.5 24 3.5c-7.6 0-14.2 4.3-17.7 11.2z"/>
+            <path fill="#4CAF50" d="M24 44.5c5.2 0 10-1.9 13.7-5l-6.3-5.2C29.5 35.8 26.9 37 24 37c-5.2 0-9.6-3.5-11.2-8.3l-6.6 5.1C9.8 40.3 16.5 44.5 24 44.5z"/>
+            <path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.3 5.2c3.8-3.5 6.2-8.6 6.2-14.7 0-1.4-.1-2.7-.4-4z"/>
+          </svg>
+          Continue with Google
+        </span>
+      </button>
     </div>
 
-    <div style="text-align:center;padding:0.5rem 0">
-      <p style="font-size:12px;color:var(--faint);line-height:1.7">
-        Free tier: 10,000 requests/day<br/>
-        Only you use your key — it never runs out
+    <div style="text-align:center;padding:0.75rem 1rem 0">
+      <p style="font-size:12px;color:var(--faint);line-height:1.8">
+        🔒 Sign-in is handled entirely by Google<br/>
+        Your credentials never touch our servers<br/>
+        Free to use · No credit card ever needed
       </p>
+    </div>
+
+    <!-- Advanced: manual API key fallback -->
+    <div style="text-align:center;margin-top:1.5rem">
+      <button onclick="showApiKeyFallback()" style="background:none;border:none;color:var(--faint);font-size:12px;cursor:pointer;text-decoration:underline;font-family:'Outfit',sans-serif">
+        Advanced: use my own API key instead
+      </button>
+    </div>
+
+    <!-- API key fallback (hidden by default) -->
+    <div id="api-key-fallback" style="display:none;padding:0 0 1rem">
+      <div class="setup-card" style="margin-top:1rem">
+        <h2 style="font-size:1rem;margin-bottom:0.75rem">API Key</h2>
+        <input class="api-input" id="api-key-input" type="password"
+          placeholder="AIzaSy..." autocomplete="off" spellcheck="false"/>
+        <div class="api-input-note">From Google Cloud Console → YouTube Data API v3</div>
+        <button class="btn btn-ghost" id="setup-btn" style="margin-top:0.75rem">Save Key</button>
+      </div>
     </div>
   </div>
 
@@ -907,7 +930,9 @@ body{
       </div>
     </div>
     <button class="add-channel-fab" onclick="showScreen('add')">
-      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
     </button>
   </div>
 
@@ -963,10 +988,10 @@ body{
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </div>
             <div class="settings-row-text">
-              <div class="settings-row-label">API Key</div>
+              <div class="settings-row-label">Sign-in</div>
               <div class="settings-row-sub" id="settings-key-preview">Not set</div>
             </div>
-            <button class="btn btn-ghost" style="width:auto;padding:0.4rem 0.9rem;font-size:12px;margin:0" onclick="changeApiKey()">Change</button>
+            <button class="btn btn-ghost" style="width:auto;padding:0.4rem 0.9rem;font-size:12px;margin:0" onclick="changeApiKey()">Sign out</button>
           </div>
         </div>
       </div>
@@ -1079,11 +1104,38 @@ const STORE = {
   set apiKey(v){ localStorage.setItem('ft_api_key', v) },
   get channels(){ try{ return JSON.parse(localStorage.getItem('ft_channels')||'[]') }catch(e){ return [] } },
   set channels(v){ localStorage.setItem('ft_channels', JSON.stringify(v)) },
+  get isOAuth(){ return !!localStorage.getItem('ft_oauth') },
+  set isOAuth(v){ v ? localStorage.setItem('ft_oauth','1') : localStorage.removeItem('ft_oauth') },
 };
 
 let currentScreen = '';
-let foundChannel  = null; // channel found in add screen
-let videoCache    = {};   // channelId -> [{id,title,thumb,duration,publishedAt}]
+let foundChannel  = null;
+
+/* Video cache — persisted in localStorage with 3-hour expiry.
+   Reopening the app doesn't burn API quota again. */
+const CACHE_TTL = 3 * 60 * 60 * 1000;
+
+function getCachedVideos(channelId){
+  try{
+    const raw = localStorage.getItem('ft_vc_' + channelId);
+    if(!raw) return null;
+    const {ts, videos} = JSON.parse(raw);
+    if(Date.now() - ts > CACHE_TTL) return null;
+    return videos;
+  } catch(e){ return null; }
+}
+
+function setCachedVideos(channelId, videos){
+  try{
+    localStorage.setItem('ft_vc_'+channelId, JSON.stringify({ts:Date.now(), videos}));
+  } catch(e){}
+}
+
+function clearVideoCache(){
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('ft_vc_'))
+    .forEach(k => localStorage.removeItem(k));
+}
 
 /* ═══════════════════════════════════════════
    UTILS
@@ -1131,7 +1183,7 @@ function formatSubs(n){
 /* ═══════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════ */
-function showScreen(name){
+function showScreen(name, opts){
   // hide all screens
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -1151,7 +1203,7 @@ function showScreen(name){
   if(navMap[screen]) document.getElementById(navMap[screen]).classList.add('active');
 
   // screen-specific init
-  if(screen === 'feed')     initFeed();
+  if(screen === 'feed')     initFeed(opts);
   if(screen === 'channels') initChannels();
   if(screen === 'settings') initSettings();
   if(screen === 'add')      initAdd();
@@ -1160,55 +1212,128 @@ function showScreen(name){
 /* ═══════════════════════════════════════════
    SETUP SCREEN
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   GOOGLE OAUTH — sign in without API key
+   Uses Google Identity Services implicit flow.
+   The access token is stored in memory only
+   (not localStorage) for security — user signs
+   in once per session. Channel list persists.
+═══════════════════════════════════════════ */
+
+// Your Google OAuth Client ID
+// TO SET UP: go to console.cloud.google.com → APIs & Services → Credentials
+// → Create OAuth 2.0 Client ID → Web application
+// → Add your hosted URL to "Authorized JavaScript origins"
+// → Paste the client ID below
+const GOOGLE_CLIENT_ID = '9265791897-2kqf021c62uh3q3koc3q9hhu57a9lrrt.apps.googleusercontent.com';
+
+let googleAccessToken = null; // in-memory only, cleared on page close
+let tokenExpiry       = 0;
+
+function showApiKeyFallback(){
+  document.getElementById('api-key-fallback').style.display = 'block';
+}
+
+function startGoogleAuth(){
+  if(!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === '9265791897-2kqf021c62uh3q3koc3q9hhu57a9lrrt.apps.googleusercontent.com'){
+    // No client ID configured — fall through to API key mode
+    showApiKeyFallback();
+    const err = document.getElementById('setup-error');
+    err.textContent = 'OAuth not configured yet. Use API key below, or set up a Client ID.';
+    err.style.display = 'block';
+    return;
+  }
+
+  const params = new URLSearchParams({
+    client_id:     GOOGLE_CLIENT_ID,
+    redirect_uri:  location.origin + location.pathname,
+    response_type: 'token',
+    scope:         'https://www.googleapis.com/auth/youtube.readonly',
+    prompt:        'select_account',
+  });
+  // Save current channels before redirect
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
+}
+
+function handleOAuthCallback(){
+  // Check if we're returning from Google OAuth redirect
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const token = hash.get('access_token');
+  const expiresIn = parseInt(hash.get('expires_in') || '0');
+
+  if(token){
+    googleAccessToken = token;
+    tokenExpiry = Date.now() + (expiresIn * 1000);
+    // Clean the URL
+    history.replaceState(null, '', location.pathname);
+    STORE.isOAuth = true;
+    showScreen('feed');
+    if(!STORE.channels.length) showScreen('channels');
+    return true;
+  }
+  return false;
+}
+
+// API key fallback
 document.getElementById('setup-btn').onclick = async () => {
   const key = document.getElementById('api-key-input').value.trim();
   const err  = document.getElementById('setup-error');
   err.style.display = 'none';
 
   if(!key.startsWith('AIza') || key.length < 20){
-    err.textContent = 'Invalid API key — should start with AIza';
+    err.textContent = 'Invalid key — should start with AIza';
     err.style.display = 'block';
     return;
   }
 
   const btn = document.getElementById('setup-btn');
-  btn.textContent = 'Checking key…';
+  btn.textContent = 'Checking…';
   btn.disabled = true;
 
-  // Verify key works
   try{
     const r = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=id&id=dQw4w9WgXcQ&key=${key}`);
     const d = await r.json();
     if(d.error){
       err.textContent = 'Key rejected: ' + (d.error.message || 'invalid key');
       err.style.display = 'block';
-      btn.textContent = 'Get Started →';
+      btn.textContent = 'Save Key';
       btn.disabled = false;
       return;
     }
     STORE.apiKey = key;
     showScreen('channels');
-    toast('API key saved! Now add some channels.');
+    toast('API key saved!');
   } catch(e){
-    err.textContent = 'Could not verify key. Check your connection.';
+    err.textContent = 'Could not verify. Check connection.';
     err.style.display = 'block';
-    btn.textContent = 'Get Started →';
+    btn.textContent = 'Save Key';
     btn.disabled = false;
   }
 };
-
-document.getElementById('api-key-input').addEventListener('keydown', e => {
-  if(e.key === 'Enter') document.getElementById('setup-btn').click();
-});
 
 /* ═══════════════════════════════════════════
    YOUTUBE API
 ═══════════════════════════════════════════ */
 const YT = (path, params) => {
   const url = new URL(`https://www.googleapis.com/youtube/v3/${path}`);
-  url.searchParams.set('key', STORE.apiKey);
+  const headers = {};
+  if(googleAccessToken && Date.now() < tokenExpiry){
+    // OAuth mode — use Bearer token, no API key needed
+    headers['Authorization'] = 'Bearer ' + googleAccessToken;
+  } else {
+    // API key mode fallback
+    url.searchParams.set('key', STORE.apiKey);
+  }
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
-  return fetch(url).then(r => r.json());
+  return fetch(url, {headers}).then(async r => {
+    const d = await r.json();
+    // If token expired mid-session, re-auth
+    if(d.error?.status === 'UNAUTHENTICATED' && STORE.isOAuth){
+      googleAccessToken = null;
+      startGoogleAuth();
+    }
+    return d;
+  });
 };
 
 async function searchChannel(query){
@@ -1242,27 +1367,36 @@ async function searchChannel(query){
   };
 }
 
-async function fetchVideos(channelId, maxResults=10){
-  // Get latest uploads
-  const search = await YT('search', {
-    part:'id', channelId, type:'video',
-    order:'date', maxResults,
-    safeSearch:'none'
+async function fetchVideos(channelId, uploadsPlaylistId){
+  /* QUOTA SAVING:
+     OLD: search.list = 100 units per call (very expensive)
+     NEW: playlistItems.list = 1 unit per call (100x cheaper!)
+     Total per channel: 2 units (playlist + video details)
+     vs old: 200 units (search + video details)
+  */
+  const playlistId = uploadsPlaylistId || ('UU' + channelId.slice(2));
+
+  // Fetch 25 latest uploads — 1 unit only!
+  const playlist = await YT('playlistItems', {
+    part: 'contentDetails',
+    playlistId,
+    maxResults: 25,
   });
 
-  if(!search.items?.length) return [];
+  if(!playlist.items?.length) return [];
 
-  const ids = search.items.map(i => i.id.videoId).join(',');
+  const ids = playlist.items.map(i => i.contentDetails.videoId).join(',');
 
-  // Get video details including duration (to filter Shorts)
+  // Get video details including duration — 1 unit
   const details = await YT('videos', {
-    part:'snippet,contentDetails,statistics', id:ids
+    part: 'snippet,contentDetails',
+    id: ids,
   });
 
   return (details.items || [])
     .filter(v => {
       const secs = durationSeconds(v.contentDetails?.duration || 'PT0S');
-      return secs > 180; // Filter Shorts (≤180 seconds)
+      return secs > 180; // Filter Shorts ≤3 mins
     })
     .slice(0, 5)
     .map(v => ({
@@ -1278,23 +1412,8 @@ async function fetchVideos(channelId, maxResults=10){
 /* ═══════════════════════════════════════════
    FEED SCREEN
 ═══════════════════════════════════════════ */
-async function initFeed(){
-  const channels = STORE.channels;
-  const body     = document.getElementById('feed-body');
-  const empty    = document.getElementById('feed-empty');
-
-  if(!channels.length){
-    body.innerHTML = '';
-    body.appendChild(empty);
-    empty.style.display = 'flex';
-    return;
-  }
-
-  empty.style.display = 'none';
-
-  // Render skeletons for all channels
-  body.innerHTML = channels.map((ch, i) => `
-    <div class="channel-section" style="animation-delay:${i*60}ms" id="feed-ch-${ch.id}">
+function channelBlockHTML(ch, i){
+  return `<div class="channel-section" id="feed-ch-${ch.id}">
       <div class="channel-label">
         <div class="ch-avatar">
           ${ch.avatar ? `<img src="${esc(ch.avatar)}" alt=""/>` : ''}
@@ -1310,24 +1429,73 @@ async function initFeed(){
             <div class="sk-line s"></div>
           </div>`).join('')}
       </div>
-    </div>
+    </div>`;
+}
+
+async function loadChannelVideos(ch){
+  try{
+    let videos = getCachedVideos(ch.id);
+    if(!videos){
+      videos = await fetchVideos(ch.id, ch.uploadsId);
+      setCachedVideos(ch.id, videos);
+    }
+    renderVideos(ch, videos);
+  } catch(e){
+    const el = document.getElementById(`videos-${ch.id}`);
+    if(el) el.innerHTML = `<div style="padding:1rem;font-size:13px;color:var(--faint)">Could not load videos</div>`;
+  }
+}
+
+async function initFeed(newChannelId){
+  const channels = STORE.channels;
+  const body     = document.getElementById('feed-body');
+  const empty    = document.getElementById('feed-empty');
+
+  if(!channels.length){
+    body.innerHTML = '';
+    body.appendChild(empty);
+    empty.style.display = 'flex';
+    return;
+  }
+
+  empty.style.display = 'none';
+
+  if(newChannelId){
+    // ── Incremental update: only add the new channel, don't rebuild everything ──
+    const ch  = channels.find(c => c.id === newChannelId);
+    if(!ch) return;
+
+    // Remove existing divider at end if present, we'll re-add
+    const lastDivider = body.querySelector('.section-divider:last-of-type');
+
+    // Insert divider before new channel if there are already channels shown
+    const existingBlocks = body.querySelectorAll('.channel-section');
+    if(existingBlocks.length > 0){
+      const div = document.createElement('div');
+      div.className = 'section-divider';
+      body.appendChild(div);
+    }
+
+    // Append new channel block
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = channelBlockHTML(ch, channels.length - 1);
+    const block = wrapper.firstElementChild;
+    block.style.animation = 'fadeUp 0.35s ease both';
+    body.appendChild(block);
+
+    // Fetch only this channel's videos
+    loadChannelVideos(ch);
+    return;
+  }
+
+  // ── Full rebuild (first load or manual refresh) ──
+  body.innerHTML = channels.map((ch, i) => `
+    ${channelBlockHTML(ch, i)}
     ${i < channels.length-1 ? '<div class="section-divider"></div>' : ''}
   `).join('');
 
-  // Fetch videos for each channel
-  channels.forEach(async ch => {
-    try{
-      let videos = videoCache[ch.id];
-      if(!videos){
-        videos = await fetchVideos(ch.id);
-        videoCache[ch.id] = videos;
-      }
-      renderVideos(ch, videos);
-    } catch(e){
-      const el = document.getElementById(`videos-${ch.id}`);
-      if(el) el.innerHTML = `<div style="padding:1rem;font-size:13px;color:var(--faint)">Could not load videos</div>`;
-    }
-  });
+  // Fetch all channels
+  channels.forEach(ch => loadChannelVideos(ch));
 }
 
 function renderVideos(ch, videos){
@@ -1357,7 +1525,7 @@ function renderVideos(ch, videos){
 }
 
 document.getElementById('feed-refresh-btn').onclick = () => {
-  videoCache = {};
+  clearVideoCache();
   initFeed();
   toast('Refreshed!');
 };
@@ -1427,7 +1595,7 @@ function initChannels(){
 function removeChannel(id){
   const channels = STORE.channels.filter(c => c.id !== id);
   STORE.channels = channels;
-  delete videoCache[id];
+  localStorage.removeItem('ft_vc_' + id);
   initChannels();
   toast('Channel removed');
 }
@@ -1509,28 +1677,35 @@ document.getElementById('add-btn').onclick = () => {
   }
   channels.push(foundChannel);
   STORE.channels = channels;
+  const addedId = foundChannel.id;
   toast(`Added ${foundChannel.name}!`);
-  showScreen('channels');
+  // Pass the new channel ID so feed only loads that channel incrementally
+  showScreen('feed', addedId);
 };
 
 /* ═══════════════════════════════════════════
    SETTINGS SCREEN
 ═══════════════════════════════════════════ */
 function initSettings(){
-  const key = STORE.apiKey;
-  const el  = document.getElementById('settings-key-preview');
-  el.textContent = key ? key.slice(0,8)+'…'+key.slice(-4) : 'Not set';
+  const el = document.getElementById('settings-key-preview');
+  if(googleAccessToken){
+    el.textContent = 'Google OAuth (signed in)';
+  } else {
+    const key = STORE.apiKey;
+    el.textContent = key ? key.slice(0,8)+'…'+key.slice(-4) : 'Not set';
+  }
 }
 
 function changeApiKey(){
   STORE.apiKey = '';
+  STORE.isOAuth = false;
+  googleAccessToken = null;
   showScreen('setup');
 }
 
 function clearAllData(){
   if(!confirm('Clear all data? This removes your API key and all channels.')) return;
   localStorage.clear();
-  videoCache = {};
   location.reload();
 }
 
@@ -1538,10 +1713,19 @@ function clearAllData(){
    BOOT
 ═══════════════════════════════════════════ */
 window.addEventListener('load', () => {
-  if(!STORE.apiKey){
-    showScreen('setup');
-  } else {
+  // Check if returning from Google OAuth redirect
+  if(location.hash.includes('access_token')){
+    if(handleOAuthCallback()) return;
+  }
+
+  // Already authenticated?
+  if(STORE.apiKey || (STORE.isOAuth && location.hash.includes('access_token'))){
     showScreen('feed');
+  } else if(STORE.isOAuth){
+    // Was OAuth user but token expired (page reload) — re-auth silently
+    startGoogleAuth();
+  } else {
+    showScreen('setup');
   }
 });
 
