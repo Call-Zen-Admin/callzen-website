@@ -1262,7 +1262,7 @@ async function fetchVideos(channelId, maxResults=10){
   return (details.items || [])
     .filter(v => {
       const secs = durationSeconds(v.contentDetails?.duration || 'PT0S');
-      return secs > 60; // Filter Shorts (≤60 seconds)
+      return secs > 180; // Filter Shorts (≤180 seconds)
     })
     .slice(0, 5)
     .map(v => ({
